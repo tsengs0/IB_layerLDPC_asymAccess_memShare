@@ -1,1 +1,1 @@
-# InformationBottleneck_RTL_Generator-Enhanced-
+# Information Bottleneck Layered LDPC decoder with asymmetric-access and shared memory mechanism
