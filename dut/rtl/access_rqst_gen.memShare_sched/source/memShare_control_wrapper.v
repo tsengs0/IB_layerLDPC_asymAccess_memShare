@@ -27,17 +27,17 @@
 *	Type-0 Register: 7 bits wide
     Type-0 Register Array: 64 page
     Memory Cell: 64x7bit
-*		LUT: 14
-        Logic LUT: 8
-        LUTRAM: 6
-		FF: 3
-        I/O: 22
+*		LUT: 15
+        Logic LUT: 11
+        LUTRAM: 4
+		FF: 17
+        I/O: 24
         Freq: 400MHz
-        WNS: +1.998 ns
+        WNS: +1.171 ns
         TNS: 0.0 ns
-        WHS: +0.093 ns
+        WHS: +0.0959 ns
         THS: 0.0 ns
-        WPWS: 0.718 ns
+        WPWS: 0.000 ns
         TPWS: 0.0 ns
 **/
 `include "memShare_config.vh"
@@ -79,7 +79,6 @@ module memShare_control_wrapper #(
     input wire [TYPE0_REG_BITWIDTH-1:0] regType0_wdata_i,
     input wire regType0_we_i,
 
-    input wire deltaPipe_rstn,
     input wire rstn,
     input wire sys_clk  
 );
@@ -149,6 +148,16 @@ memShare_rfmu #(
 // Pipeline stage 1.b
 // L1PA register file
 //-----------------------------------
+wire deltaPipe_rstn;
+memShare_delta_reset #(
+    .RST_POLARITY (1'b0) // 0: active LOW, 1: active HIGH
+) memShare_delta_reset (
+    .reset_o (deltaPipe_rstn), // synchrounous reset signal connected to the delta FF
+    .isGtr_i (isGtr_fb_net), // isGtr obtainned from RFMU at SHFIT_GEN state
+    .sys_clk (sys_clk),
+    .rstn (rstn)
+);
+
 memShare_regFile_wrapper #(
     .SHIFT_BITWIDTH      (SHIFT_BITWIDTH     ),
     .DELTA_BITWIDTH      (DELTA_BITWIDTH     ),
@@ -172,6 +181,7 @@ memShare_regFile_wrapper #(
     .rstn (rstn),
     .deltaPipe_rstn (deltaPipe_rstn)
 );
+
 //-----------------------------------
 // Pipeline stage 2
 // Generation of L1PA shift control shift signals
