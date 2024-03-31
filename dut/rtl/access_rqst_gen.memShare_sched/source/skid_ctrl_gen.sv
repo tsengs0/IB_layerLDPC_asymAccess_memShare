@@ -18,6 +18,11 @@
 
 // # Dependencies
 // 	None
+
+// # Resource utilisation:
+// Xilinx:
+//  6-input logic LUT: 1
+//  FF: 4
 // ----------------------------------------------------------------------------------------
 //  # History
 //  Date            Revision    Description                 Editor
@@ -37,6 +42,7 @@ module skid_ctrl_gen #(
 // Internal signals and local parameters
 localparam logic NOSKID = 1'b0;
 localparam logic SKID = 1'b1;
+localparam ALL_ONE = 2**(MAX_ALLOC_SEQ_NUM+1)-1;
 logic isColAddr_skid_pipe0;
 logic isColAddr_skid_net;
 
@@ -44,12 +50,12 @@ logic isColAddr_skid_net;
 logic [MAX_ALLOC_SEQ_NUM:0] isGtr_pipe;
 logic isGtr_back2back;
 always_ff @(posedge sys_clk) if(!rstn) isGtr_pipe <= NOSKID; else isGtr_pipe[MAX_ALLOC_SEQ_NUM:0] <= {isGtr_pipe[MAX_ALLOC_SEQ_NUM-1:0], isGtr_i};
-assign isGtr_back2back = 2**(MAX_ALLOC_SEQ_NUM+1)-1;// all-one detection
+assign isGtr_back2back = (isGtr_pipe==ALL_ONE) ? 1'b1 : 1'b0;// all-one detection
 
 // Final decision of skid buffer selector based on the design rule 1, 2 and 3
 assign isColAddr_skid_net = (!isColAddr_skid_pipe0 & isGtr_i) ? SKID : // Design Rule 1
                             (isGtr_back2back) ? NOSKID :
                             (isGtr_i && pipeCycle_begin_i) ? NOSKID : isColAddr_skid_pipe0;
-always_ff(posedge sys_clk) if(!rstn) isColAddr_skid_pipe0 <= 1'b0; else isColAddr_skid_pipe0 <= isColAddr_skid_net;
+always_ff @(posedge sys_clk) if(!rstn) isColAddr_skid_pipe0 <= 1'b0; else isColAddr_skid_pipe0 <= isColAddr_skid_net;
 assign isColAddr_skid_o = isColAddr_skid_pipe0;
 endmodule
