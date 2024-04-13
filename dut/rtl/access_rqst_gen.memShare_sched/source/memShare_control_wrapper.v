@@ -71,6 +71,7 @@ module memShare_control_wrapper #(
     // Access-request generator
     input wire [(RQST_ADDR_BITWIDTH*SHARE_GROUP_SIZE)-1:0] rqst_addr_i,
     input wire [MODE_BITWIDTH-1:0] modeSet_i,
+    input wire isColAddr_skid_i, // Selector signal for the skid buffer
     // L1PA regFile-mapping unit
     output wire [L1PA_SHIFT_BITWIDTH-1:0] l1pa_shift_o, //! shift control instructing the L1PA
     output wire isGtr_o, //! 1: currently accessed L1PA_SPR is the last pattern in the chosen L1PA shift sequence
@@ -88,6 +89,7 @@ module memShare_control_wrapper #(
 // Access-request generator
 //-----------------------------------
 wire [SHARE_GROUP_SIZE-1:0] share_rqstFlag_net;
+wire [SHARE_GROUP_SIZE-1:0] share_rqstFlag_skid;
 reg [SHARE_GROUP_SIZE-1:0] share_rqstFlag_pipe0;
 `ifdef DECODER_3bit
     accessRqstGen_2gp #(
@@ -110,7 +112,17 @@ reg [SHARE_GROUP_SIZE-1:0] share_rqstFlag_pipe0;
 	.modeSet_i ({7{1'b0}})//(modeSet_i)
 `endif // DECODER_3bit
 );
-always @(posedge sys_clk) begin if(!rstn) share_rqstFlag_pipe0 <= 0; share_rqstFlag_pipe0 <= share_rqstFlag_net; end
+
+memShare_skidBuffer #(
+    .SHARE_GROUP_SIZE (SHARE_GROUP_SIZE)
+) (
+    share_rqstFlag_o (share_rqstFlag_skid),
+    share_rqstFlag_i (share_rqstFlag_net),
+    isColAddr_skid_i (isColAddr_skid_i),
+    .sys_clk (sys_clk),
+    .rstn (rstn)
+);
+always @(posedge sys_clk) begin if(!rstn) share_rqstFlag_pipe0 <= 0; share_rqstFlag_pipe0 <= share_rqstFlag_skid; end
 //-----------------------------------
 // Pipeline stage 1.a
 // L1PA regFile-mapping unit
