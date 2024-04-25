@@ -12,8 +12,8 @@
 `define MEMSHARE_SCHED_SOL_3
 `define MEMSHARE_REGFILE_SOL4
 
-//`define DECODER_3bit
-`define DECODER_4bit
+`define DECODER_3bit
+//`define DECODER_4bit
 
 `define SHARE_GROUP_SIZE 5 // Number of requestors joining a share group (GP1+GP2)
 `define SHARE_COL_CONFIG 5'b10101 //! '1': shared column

@@ -77,10 +77,10 @@ wire [L1PA_SHIFT_BITWIDTH:0] l1pa_shift_net;
 wire [L1PA_SHIFT_BITWIDTH:0] l1pa_shift_pipeN;
 wire isGtr_fb_pipeN;
 pipeReg_insert #(
-    .BITWIDTH(L1PA_SHIFT_BITWIDTH+1),
+    .BITWIDTH(L1PA_SHIFT_BITWIDTH+1+1),
     .PIPELINE_STAGE(SHIFTDELTA_ALU_CYCLE)
 ) shiftDelta_alu_pipeReg (
-    .pipe_reg_o    ({l1pa_shift_pipeN[L1PA_SHIFT_BITWIDTH-1:0], isGtr_fb_pipeN}),
+    .pipe_reg_o    ({l1pa_shift_pipeN[L1PA_SHIFT_BITWIDTH:0], isGtr_fb_pipeN}),
     //.stage_probe_o (),
     .sig_net_i     ({l1pa_shift_net[L1PA_SHIFT_BITWIDTH:0], isGtr_fb_i}),
     .pipeLoad_en_i ({SHIFTDELTA_ALU_CYCLE{1'b1}}),
@@ -95,10 +95,10 @@ assign isGtr_o = isGtr_fb_pipeN;
 
 // Replacable rqstFlag-to-regFile.raddr mapping table/unit
 task addr_map_unit;
-	output [REGFILE_ADDR_WIDTH-1:0] mapped_addr;
+	output [REGFILE_ADDR_WIDTH-1:0] mapped_addr_o;
 	input [RQST_BITWIDTH-1:0] rqstIn;
 	begin
-        mapped_addr[REGFILE_ADDR_WIDTH-1:0] = rqstIn[RQST_BITWIDTH-1:0];
+        mapped_addr_o[REGFILE_ADDR_WIDTH-1:0] = rqstIn[RQST_BITWIDTH-1:0];
 	end
 endtask
 endmodule

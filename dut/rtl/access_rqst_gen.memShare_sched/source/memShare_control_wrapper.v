@@ -22,6 +22,8 @@
 * # Dependencies
     1) Preprocessor to add any new special function register
         ./memShare_config.vh
+    2) Parameter and enumeration determing the bit width and bit field, respectively
+        memShare_config_pkg.sv
 *
 * # Remark
 *	Type-0 Register: 7 bits wide
@@ -42,7 +44,9 @@
 **/
 `include "memShare_config.vh"
 
-module memShare_control_wrapper #(
+module memShare_control_wrapper 
+    import memShare_config_pkg::*;
+#(
     // Access-request generator
 	parameter SHARE_GROUP_SIZE = `SHARE_GROUP_SIZE, //! Number of requestors joining a share group (GP1+GP2)
 	parameter RQST_ADDR_BITWIDTH = `RQST_ADDR_BITWIDTH, //! Bit width of every requestor's column address
@@ -71,7 +75,6 @@ module memShare_control_wrapper #(
     // Access-request generator
     input wire [(RQST_ADDR_BITWIDTH*SHARE_GROUP_SIZE)-1:0] rqst_addr_i,
     input wire [MODE_BITWIDTH-1:0] modeSet_i,
-    input wire isColAddr_skid_i, // Selector signal for the skid buffer
     // L1PA regFile-mapping unit
     output wire [L1PA_SHIFT_BITWIDTH-1:0] l1pa_shift_o, //! shift control instructing the L1PA
     output wire isGtr_o, //! 1: currently accessed L1PA_SPR is the last pattern in the chosen L1PA shift sequence
@@ -85,12 +88,46 @@ module memShare_control_wrapper #(
 );
 
 //-----------------------------------
-// Pipeline stage 0
-// Access-request generator
+// Internal signals
 //-----------------------------------
+// Pipeline stage 0
 wire [SHARE_GROUP_SIZE-1:0] share_rqstFlag_net;
 wire [SHARE_GROUP_SIZE-1:0] share_rqstFlag_skid;
 reg [SHARE_GROUP_SIZE-1:0] share_rqstFlag_pipe0;
+// Pipeline stage 1.a
+wire [L1PA_SHIFT_BITWIDTH-1:0] l1pa_shift_net; //! shift control instructing the L1PA
+wire [REGFILE_ADDR_WIDTH-1:0] regFile_raddr_net; //! read address for memShare_regFile
+wire isGtr_net; //! 1: currently accessed L1PA_SPR is the last pattern in the chosen L1PA shift sequence
+wire [L1PA_SHIFT_BITWIDTH-1:0] l1pa_shift_fb_net;
+wire [L1PA_SHIFT_BITWIDTH-1:0] shiftDelta_fb_net;
+wire isGtr_fb_net; //! Feedback of "isGreaterThan-0" extracted from LSB of L1PA_SPR
+// Pipeline stage 1.b
+wire deltaPipe_rstn;
+//-----------------------------------
+// Central control/monitor units across
+// all subsequent pipeline stages 
+//-----------------------------------
+wire [MEMSHARE_DRC_NUM-1:0] is_drc; // Only for the debugging purpose in the testbench, not for synthesis
+wire pipeCycle_begin;
+wire isColAddr_skid; // Selector signal for the skid buffer
+memShare_monitor  memShare_monitor (
+    .is_drc_o(is_drc),
+    .pipeCycle_begin_o(pipeCycle_begin),
+    .isGtr_i(isGtr_net),
+    .sys_clk(sys_clk),
+    .rstn(rstn)
+);
+memShare_skid_ctrl memShare_skid_ctrl (
+    .isColAddr_skid_o(isColAddr_skid),
+    .pipeCycle_begin_i(pipeCycle_begin),
+    .isGtr_i(isGtr_net),
+    .sys_clk(sys_clk),
+    .rstn(rstn)
+  );
+//-----------------------------------
+// Pipeline stage 0
+// Access-request generator
+//-----------------------------------
 `ifdef DECODER_3bit
     accessRqstGen_2gp #(
 `endif // DECODER_3bit
@@ -115,10 +152,10 @@ reg [SHARE_GROUP_SIZE-1:0] share_rqstFlag_pipe0;
 
 memShare_skidBuffer #(
     .SHARE_GROUP_SIZE (SHARE_GROUP_SIZE)
-) (
-    share_rqstFlag_o (share_rqstFlag_skid),
-    share_rqstFlag_i (share_rqstFlag_net),
-    isColAddr_skid_i (isColAddr_skid_i),
+) memShare_skidBuffer (
+    .share_rqstFlag_o (share_rqstFlag_skid),
+    .share_rqstFlag_i (share_rqstFlag_net),
+    .isColAddr_skid_i (isColAddr_skid),
     .sys_clk (sys_clk),
     .rstn (rstn)
 );
@@ -127,12 +164,6 @@ always @(posedge sys_clk) begin if(!rstn) share_rqstFlag_pipe0 <= 0; share_rqstF
 // Pipeline stage 1.a
 // L1PA regFile-mapping unit
 //-----------------------------------
-wire [L1PA_SHIFT_BITWIDTH-1:0] l1pa_shift_net; //! shift control instructing the L1PA
-wire [REGFILE_ADDR_WIDTH-1:0] regFile_raddr_net; //! read address for memShare_regFile
-wire isGtr_net; //! 1: currently accessed L1PA_SPR is the last pattern in the chosen L1PA shift sequence
-wire [L1PA_SHIFT_BITWIDTH-1:0] l1pa_shift_fb_net;
-wire [L1PA_SHIFT_BITWIDTH-1:0] shiftDelta_fb_net;
-wire isGtr_fb_net; //! Feedback of "isGreaterThan-0" extracted from LSB of L1PA_SPR
 memShare_rfmu #(
     .RQST_BITWIDTH        (RQST_BITWIDTH      ), //! Size of request flag
     .REGFILE_PAGE_NUM     (REGFILE_PAGE_NUM   ), //! Number of pages in memShare_regFile
@@ -160,7 +191,6 @@ memShare_rfmu #(
 // Pipeline stage 1.b
 // L1PA register file
 //-----------------------------------
-wire deltaPipe_rstn;
 memShare_delta_reset #(
     .RST_POLARITY (1'b0) // 0: active LOW, 1: active HIGH
 ) memShare_delta_reset (

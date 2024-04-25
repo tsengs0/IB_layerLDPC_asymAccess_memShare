@@ -13,15 +13,17 @@
 //      To pipeline a designated signals such that their timing can be synchrounised 
 //      to the underlying pipeline architecture
 // # Dependencies
-// 	None
+// 	global_debug.vh
+`include "global_debug.vh"
 module pipeReg_insert #(
     parameter BITWIDTH = 3, //! Bitwidth of the designated signals
     parameter PIPELINE_STAGE = 5, //! Number of the pipeline stages
     parameter AGGREGATE_WIDTH = PIPELINE_STAGE*BITWIDTH
 ) (
     output wire [BITWIDTH-1:0] pipe_reg_o,
+`ifdef TB_DEBUG
     output wire [AGGREGATE_WIDTH-1:0] stage_probe_o,
-
+`endif // TB_DEBUG
     input wire [BITWIDTH-1:0] sig_net_i,
     input wire [PIPELINE_STAGE-1:0] pipeLoad_en_i,
     input wire sys_clk,
@@ -46,8 +48,9 @@ for(stage=0; stage<PIPELINE_STAGE; stage=stage+1) begin: pipelineStage
             else pipe_reg[stage] <= pipe_reg[stage];
         end
     end
-
+`ifdef TB_DEBUG
     assign stage_probe_o[(stage+1)*BITWIDTH-1:stage*BITWIDTH] = pipe_reg[stage];
+`endif // TB_DEBUG
 end
 endgenerate
 assign pipe_reg_o[BITWIDTH-1:0] = pipe_reg[PIPELINE_STAGE-1];
