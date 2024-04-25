@@ -1,0 +1,15 @@
++incdir+../global_header
+../global_header/memShare_config_pkg.sv
+./source/memShare_control_wrapper.v
+./source/memShare_skid_ctrl.sv
+./source/memShare_monitor.sv
+./source/rqstFlagGen_lib/accessRqstGen_2gp.v
+./source/rqstFlagGen_lib/accessRqstGen_2gp_q4.v
+./source/rqstFlagGen_lib/accessRqstGen.v
+./source/memShare_skidBuffer.sv
+../IB_LUT_cell/source/rdAsync_lutMem_1bankX1port.v
+./source/regFile_lib/memShare_regFile_l1paDelta.v
+./source/regFile_lib/memShare_regFile_wrapper.v
+../common_lib/pipeReg_insert.v
+./source/memShare_rfmu.v
+./source/memShare_delta_reset.sv
