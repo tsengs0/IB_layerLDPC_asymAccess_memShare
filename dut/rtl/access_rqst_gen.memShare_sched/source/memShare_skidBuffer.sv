@@ -4,13 +4,6 @@
 // Developer: Bo-Yu Tseng
 // Email: tsengs0@gamil.com
 //
-// # I/F
-// 1) Output:
-//
-// 2) Input:
-//
-// # Parameter
-//
 // # Description
 // A skid buffer insetted in between "request flag generator (inst: accessRqstGen)"
 // and the "shift ctrl register file (inst: memShare_rfmu+memShare_regFile_wrapper)".
