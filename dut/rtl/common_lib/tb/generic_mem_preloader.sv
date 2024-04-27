@@ -59,4 +59,13 @@ task bypass_preload;
     end
     $display("=============================");
 endtask
+
+// To watch the memory content inside the DUT memory block
+task dut_mem_bin_view;
+$display("The DUT memory block:");
+$display("=============================");
+$display("Addr:\t\tValue [binary]");
+for(int i=0; i<PAGE_NUM; i++) $display("0x%08h:\t%b", i, `DUT_MEM_PATH.`DUT_MEM_CELL[i]);
+$display("=============================");
+endtask
 endclass

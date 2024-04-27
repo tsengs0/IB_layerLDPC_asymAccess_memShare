@@ -30,7 +30,9 @@ logic sys_clk;
 //----------------------------------------------------------------
 // Local variables
 //----------------------------------------------------------------
-generic_mem_preloader regFile_loader;
+`include "scu_memShare_tb_class.sv"
+generic_mem_preloader#(.PAGE_NUM(L1PA_REGFILE_PAGE_NUM), .PAGE_SIZE(L1PA_REGFILE_PAGE_WIDTH)) regFile_loader;
+
 
 memShare_control_wrapper memShare_control_wrapper (
   .rqst_addr_i(rqst_addr_i),
@@ -56,9 +58,19 @@ end
 
 initial begin
     regFile_loader = new();
+
     regFile_loader.bin_load("tb/config/l1pa_spr_5_gp2Num3_gp2Alloc10101.bin");
     regFile_loader.bin_view;
+
+    @(posedge sys_clk); // dummy delay
+    for(int i=0; i<L1PA_REGFILE_PAGE_NUM; i++)
+        regfile_write(L1PA_REGFILE_ADDR_WIDTH'(i), L1PA_REGFILE_PAGE_WIDTH'(i));
+
+    repeat(5) @(posedge sys_clk); // dummy delay
+
+    $display("\n=============================");
+    regFile_loader.dut_mem_bin_view;
+
     #(5*2*100) $finish;
 end
-
 endmodule
