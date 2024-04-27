@@ -15,6 +15,13 @@
 `define DECODER_3bit
 //`define DECODER_4bit
 
+`ifdef DECODER_3bit
+ `define QUAN_SIZE 3
+`endif // DECODER_3bit
+`ifdef DECODER_4bit
+ `define QUAN_SIZE 4
+`endif // DECODER_4bit
+
 `define SHARE_GROUP_SIZE 5 // Number of requestors joining a share group (GP1+GP2)
 `define SHARE_COL_CONFIG 5'b10101 //! '1': shared column
 //-----------------------------------------------------------------------------------------------------

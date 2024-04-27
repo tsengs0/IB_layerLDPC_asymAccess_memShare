@@ -1,0 +1,8 @@
+`ifndef __GENERIC_MEM_PRELOADER_CONFIG_H
+`define __GENERIC_MEM_PRELOADER_CONFIG_H
+
+`define TB_PATH memShare_control_wrapper_tb
+`define DUT_MEM_PATH `TB_PATH.memShare_control_wrapper.memShare_regFile_wrapper.l1pa_regFile_unit0.lutMem_1bankX1port_regType0
+`define DUT_MEM_CELL mem
+
+`endif // __GENERIC_MEM_PRELOADER_CONFIG_H
