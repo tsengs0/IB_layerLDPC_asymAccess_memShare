@@ -32,7 +32,7 @@ logic sys_clk;
 //----------------------------------------------------------------
 `include "scu_memShare_tb_class.sv"
 generic_mem_preloader#(.PAGE_NUM(L1PA_REGFILE_PAGE_NUM), .PAGE_SIZE(L1PA_REGFILE_PAGE_WIDTH)) regFile_loader;
-
+scu_memShare_tb_seq_class tb_seq;
 
 memShare_control_wrapper memShare_control_wrapper (
   .rqst_addr_i(rqst_addr_i),
@@ -58,6 +58,7 @@ end
 
 initial begin
     regFile_loader = new();
+    tb_seq = new();
 
     regFile_loader.bin_load("tb/config/l1pa_spr_5_gp2Num3_gp2Alloc10101.bin");
     regFile_loader.bin_view;
@@ -71,6 +72,8 @@ initial begin
     $display("\n=============================");
     regFile_loader.dut_mem_bin_view;
 
+    #10;
+    tb_seq.scenario_1seq_2seq_2seq(rqst_addr_i);
     #(5*2*100) $finish;
 end
 endmodule

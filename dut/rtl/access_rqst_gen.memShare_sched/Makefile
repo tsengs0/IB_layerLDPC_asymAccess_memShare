@@ -32,6 +32,7 @@ VERILATOR_BUILD_OPT = \
 		--binary \
 		--timing \
 		-o sim \
+		--debug \
 		-j 0 \
 		$(VERILATOR_SRC_OPT) \
 		$(VERILATOR_WAIVE_OPT) \

@@ -36,12 +36,13 @@ typedef enum {
 //=====================================================================================================
 // The following parameters are the legacy macros copied from the "memShare_config.vh"
 //=====================================================================================================
-localparam SHARE_GROUP_SIZE = 5; // Number of requestors joining a share group (GP1+GP2)
-localparam bit [SHARE_GROUP_SIZE-1:0] SHARE_COL_CONFIG = 5'b10101; //! '1': shared column
+
 //-----------------------------------------------------------------------------------------------------
 // Shared memory allocation:
 // Configuration of access-request generator
 //-----------------------------------------------------------------------------------------------------
+localparam SHARE_GROUP_SIZE = 5; // Number of requestors joining a share group (GP1+GP2)
+localparam bit [SHARE_GROUP_SIZE-1:0] SHARE_COL_CONFIG = 5'b10101; //! '1': shared column
 `ifdef DECODER_3bit
     localparam RQST_ADDR_BITWIDTH = 2; // Bit width of every requestor's column address
     localparam RQST_MODE_BITWIDTH = 3; // Bit width of "mode set signals" for sake of reconfigurability
@@ -51,6 +52,13 @@ localparam bit [SHARE_GROUP_SIZE-1:0] SHARE_COL_CONFIG = 5'b10101; //! '1': shar
     localparam RQST_ADDR_BITWIDTH = 3; // Bit width of every requestor's column address
     localparam RQST_MODE_BITWIDTH = 7; // Bit width of "mode set signals" for sake of reconfigurability
 `endif // DECODER_4bit
+
+typedef enum logic [RQST_ADDR_BITWIDTH-1:0] {
+    GP1_BANK0_ADDR = RQST_ADDR_BITWIDTH'(0),
+    GP1_BANK1_ADDR = RQST_ADDR_BITWIDTH'(2),
+    GP2_BANK0_ADDR = RQST_ADDR_BITWIDTH'(1),
+    GP2_BANK1_ADDR = RQST_ADDR_BITWIDTH'(3)
+} colBank_addr_gropu_e;
 //-----------------------------------------------------------------------------------------------------
 // Configuration of L1BS
 //-----------------------------------------------------------------------------------------------------
