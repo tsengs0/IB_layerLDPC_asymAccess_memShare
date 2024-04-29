@@ -11,22 +11,14 @@ logic sys_clk;
 int arrival_rqst_id;
 
 task posedge_clk(input int cycle_num);
-    if(TB_CLK_INITAL_LEVEL==1'b0)
-        #(TB_CLK_DELAY + TB_CLK_PERIOD/2 + TB_CLK_PERIOD*cycle_num);
-    else
-        #(TB_CLK_DELAY+TB_CLK_PERIOD*cycle_num);
+    #(TB_CLK_DELAY+TB_CLK_PERIOD*cycle_num);
 endtask
 
 task negedge_clk(input int cycle_num);
-    if(TB_CLK_INITAL_LEVEL==1'b0)
-        #(TB_CLK_DELAY+TB_CLK_PERIOD*cycle_num);
-    else
-        #(TB_CLK_DELAY + TB_CLK_PERIOD/2 + TB_CLK_PERIOD*cycle_num);
+    #(TB_CLK_DELAY + TB_CLK_PERIOD/2 + TB_CLK_PERIOD*cycle_num);
 endtask
 
-task scenario_1seq_2seq_2seq (
-    output logic [(RQST_ADDR_BITWIDTH*SHARE_GROUP_SIZE)-1:0] rqst_addr_o
-);
+task scenarioGen_1seq_2seq_2seq;
     // Initial state
     rqst_addr_1seq[0] = {
         GP2_BANK0_ADDR,
@@ -42,15 +34,6 @@ task scenario_1seq_2seq_2seq (
     $display("-----> rqst_addr_1seq[0]: {0x%h, 0x%h, 0x%h, 0x%h, 0x%h}", rqst_addr_1seq[0][4], rqst_addr_1seq[0][3], rqst_addr_1seq[0][2], rqst_addr_1seq[0][1], rqst_addr_1seq[0][0]);
     $display("-----> rqst_addr_2seq[0]: {0x%h, 0x%h, 0x%h, 0x%h, 0x%h}", rqst_addr_2seq[0][4], rqst_addr_2seq[0][3], rqst_addr_2seq[0][2], rqst_addr_2seq[0][1], rqst_addr_2seq[0][0]);
     $display("-----> rqst_addr_2seq[1]: {0x%h, 0x%h, 0x%h, 0x%h, 0x%h}", rqst_addr_2seq[1][4], rqst_addr_2seq[1][3], rqst_addr_2seq[1][2], rqst_addr_2seq[1][1], rqst_addr_2seq[1][0]);
-    
-    posedge_clk(1);
-    rqst_addr_o = rqst_addr_1seq[0];
-
-    posedge_clk(1);
-    rqst_addr_o = rqst_addr_2seq[0];
-
-    posedge_clk(1);
-    rqst_addr_o = rqst_addr_2seq[1];
 endtask
 
 endclass

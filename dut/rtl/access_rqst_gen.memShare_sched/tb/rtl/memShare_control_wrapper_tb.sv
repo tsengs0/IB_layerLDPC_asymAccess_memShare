@@ -1,17 +1,9 @@
 
 module memShare_control_wrapper_tb;
 import memShare_config_pkg::*;
+import scu_memShare_tb_config_pkg::*;
 
 // Parameters
-//localparam  SHARE_GROUP_SIZE = 0;
-//localparam  RQST_ADDR_BITWIDTH = 0;
-//localparam  MODE_BITWIDTH = 0;
-//localparam  RQST_FLAG_CYCLE = 0;
-//localparam  RQST_BITWIDTH = 0;
-//localparam  REGFILE_PAGE_NUM = 0;
-//localparam  MAX_MEMSHARE_INSTANCES = 0;
-//localparam  REGFILE_ADDR_WIDTH = 0;
-//localparam  L1PA_SHIFT_BITWIDTH = 0;
 
 //----------------------------------------------------------------
 // DUT's I/O ports
@@ -33,6 +25,7 @@ logic sys_clk;
 `include "scu_memShare_tb_class.sv"
 generic_mem_preloader#(.PAGE_NUM(L1PA_REGFILE_PAGE_NUM), .PAGE_SIZE(L1PA_REGFILE_PAGE_WIDTH)) regFile_loader;
 scu_memShare_tb_seq_class tb_seq;
+int SIM_TIME;
 
 memShare_control_wrapper memShare_control_wrapper (
   .rqst_addr_i(rqst_addr_i),
@@ -47,13 +40,13 @@ memShare_control_wrapper memShare_control_wrapper (
 );
 
 initial begin
-    sys_clk = 1'b0;
-    forever #5 sys_clk = ~sys_clk;
+    sys_clk = TB_CLK_INITIAL_LEVEL;
+    forever #(TB_CLK_PERIOD/2) sys_clk = ~sys_clk;
 end
 
 initial begin
     rstn = 1'b0;
-    #(5*2*10); rstn = 1'b1;
+    #(TB_CLK_PERIOD*10); rstn = 1'b1;
 end
 
 initial begin
@@ -72,8 +65,24 @@ initial begin
     $display("\n=============================");
     regFile_loader.dut_mem_bin_view;
 
-    #10;
-    tb_seq.scenario_1seq_2seq_2seq(rqst_addr_i);
-    #(5*2*100) $finish;
+    tb_seq.scenarioGen_1seq_2seq_2seq;
+    tb_seq.posedge_clk(1);
+    rqst_addr_i = tb_seq.rqst_addr_1seq[0];
+
+    tb_seq.posedge_clk(1);
+    rqst_addr_i = tb_seq.rqst_addr_2seq[0];
+
+    tb_seq.posedge_clk(1);
+    rqst_addr_i = tb_seq.rqst_addr_2seq[1];
 end
+
+// Control of the simulation time span
+initial begin
+  tb_seq.posedge_clk(SIM_TIME);
+  $finish;
+end
+
+always @(posedge sys_clk) $display("-------------------------> %b", rqst_addr_i);
+dumpvars_config#(.FST_DUMP_EN(1), .VCD_DUMP_EN(0)) dumpvars_config;
+args_config args_config;
 endmodule
