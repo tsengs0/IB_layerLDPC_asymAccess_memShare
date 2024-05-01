@@ -1,5 +1,6 @@
 +incdir+../global_header
 ../global_header/memShare_config_pkg.sv
+../global_header/msgPass_config_pkg.sv
 ./source/memShare_control_wrapper.v
 ./source/memShare_skid_ctrl.sv
 ./source/memShare_monitor.sv

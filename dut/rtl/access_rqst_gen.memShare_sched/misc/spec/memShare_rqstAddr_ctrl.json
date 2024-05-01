@@ -1,0 +1,31 @@
+{ signal: [
+    { name: "Clk", wave: "P......|" },
+    { name: "Arrival", wave: "234545x.", data: ["Rqst 0", "Rqst 1", "Rqst 2", "Rqst 3", "Rqst 2", "Rqst 3"] },
+    { name: "Rqst 0", wave: "x345x...", data: ["Read Col_Addr", "Shift Gen", "Shift Out"] },
+    { name: "Rqst 1", wave: "xx345x..", data: ["Read Col_Addr", "Shift Gen", "Shift Out"] },
+    [
+     "Skid buffer",
+     { name: "Skid.rqst1", wave: "xxx348x.", data: ["Read Col_Addr", "Shift Gen", "Shift+delta Out"] },
+     { name: "Rqst 2", wave: "xxx2345x", data: ["X Read Col_Addr", "Read Col_Addr", "Shift Gen", "Shift Out"] }
+    ],
+    { name: "Skid.rqst2", wave: "xxxxx348", data: ["Read Col_Addr", "Shift Gen", "Shift+delta Out"] },
+    { name: "Rqst 3", wave: "x...2x34", data: ["X Read Col_Addr", "Read Col_Addr", "Shift Gen"] },
+    {},
+    { name: "isGtr", wave: "0..1...x"},
+    { name: "index(isGtr)", wave: "x..3252x", data: ["isGtr.rqst1", "dummy", "isGtr.rqst2", "dummy"] },
+    {},
+    { name: "Fetch target gen.", wave: "22222x..", data: ["raddr[rqst1]", "raddr[rqst2]", "raddr[rqst3]", "raddr[rqst2]", "raddr[rqst3]"]},
+    { name: "Rqst track (FFs)", wave: "x..22x..", data: ["Track.rqst2", "Track.rqst3"]},
+    { name: "isColAddr_skid", wave: "x668866x", data: ["NONSKID (initial)", "NOSKID", "SKID", "SKID", "NOSKID (initial)", "NOSKID"]}
+  ],
+  head: {
+   text: 'Scenario of 1seq-to-2seq-to-2seq',
+   tick: 0,
+   every: 1
+  },
+
+  config: {
+    hscale: 3
+  }
+
+}

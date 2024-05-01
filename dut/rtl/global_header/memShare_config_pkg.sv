@@ -60,6 +60,11 @@ typedef enum logic [RQST_ADDR_BITWIDTH-1:0] {
     GP2_BANK1_ADDR = RQST_ADDR_BITWIDTH'(3)
 } colBank_addr_gropu_e;
 //-----------------------------------------------------------------------------------------------------
+// Configuration of the signals associated with the message-passing buffer
+//-----------------------------------------------------------------------------------------------------
+localparam MSGPASS_RD_ADDR_WIDTH = 5; // tentative
+localparam MSGPASS_ADDR_BASE = 100;
+//-----------------------------------------------------------------------------------------------------
 // Configuration of L1BS
 //-----------------------------------------------------------------------------------------------------
 localparam L1BS_CYCLE = 2; // followed up the autogen of barrel shifter
