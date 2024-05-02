@@ -1,6 +1,9 @@
 module dmu_msgPass_buffer 
     import msgPass_config_pkg::*;
 (
+    // Status control
+    output logic write_port_conflict_o, // 1: write Port A and B point to the same address
+
     // Read ports
     output logic [msgPass_config_pkg::MSGPASS_BUFF_RDATA_WIDTH-1:0] rdata_portA_o,
     output logic [msgPass_config_pkg::MSGPASS_BUFF_RDATA_WIDTH-1:0] rdata_portB_o,
@@ -8,14 +11,68 @@ module dmu_msgPass_buffer
     input logic [msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH-1:0] raddr_portB_i,
 
     // Write ports
-    input logic [msgPass_config_pkg::MSGPASS_BUFF_RDATA_WIDTH-1:0] wdata_portA_o,
-    input logic [msgPass_config_pkg::MSGPASS_BUFF_RDATA_WIDTH-1:0] wdata_portB_o,
+    input logic [msgPass_config_pkg::MSGPASS_BUFF_RDATA_WIDTH-1:0] wdata_portA_i,
+    input logic [msgPass_config_pkg::MSGPASS_BUFF_RDATA_WIDTH-1:0] wdata_portB_i,
     input logic [msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH-1:0] waddr_portA_i,
     input logic [msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH-1:0] waddr_portB_i,
 
     input logic read_clk_i,
     input logic write_clk_i,
+    input logic wen_portA_i, // active LOW
+    input logic wen_portB_i, // active LOW
     input rstn
 );
 
+localparam DATA_WIDTH = msgPass_config_pkg::MSGPASS_BUFF_RDATA_WIDTH;
+logic [DATA_WIDTH-1:0] mem [0:msgPass_config_pkg::MSGPASS_BUFF_DEPTH-1] = '{default:'0};;
+logic [DATA_WIDTH-1:0] wdata_portA_temp;
+logic [DATA_WIDTH-1:0] wdata_portB_temp;
+logic write_conflict = (waddr_portA_i == waddr_portB_i) ? 1'b1 : 1'b0;
+//-----------------------------------------------------------------------------------------------------
+// Port A
+//-----------------------------------------------------------------------------------------------------
+// Read operation
+always @(posedge read_clk_i) begin
+    if(wen_i) rdata_portA_o <= mem[raddr_portA_i];
+    else rdata_portA_o <= {DATA_WIDTH{1'bx}};
+end
+
+// Write operation
+// There is no internal conflict resolution circuitry.
+// Therefore, two write operations (port A and B) to the same address will casue an unknown write data
+always @(*) begin
+    case({wen_portA_i, write_conflict})
+        2'b00: wdata_portA_temp = wdata_portA_i;
+        2'b01: wdata_portA_temp = {DATA_WIDTH{1'bx}};
+        default: wdata_portA_temp = {DATA_WIDTH{1'bx}};
+    endcase
+end
+always @(posedge write_clk_i) begin
+    if(!wen_portA_i) mem[waddr_portA_i] = wdata_portA_temp;
+end
+//-----------------------------------------------------------------------------------------------------
+// Port B
+//-----------------------------------------------------------------------------------------------------
+// Read operation
+always @(posedge read_clk_i) begin
+    if(wen_i) rdata_portB_o <= mem[raddr_portB_i];
+    else rdata_portB_o <= {DATA_WIDTH{1'bx}};
+end
+
+// Write operation
+// There is no internal conflict resolution circuitry.
+// Therefore, two write operations (port A and B) to the same address will casue an unknown write data
+always @(*) begin
+    case({wen_portA_i, write_conflict})
+        2'b00: wdata_portA_temp = wdata_portA_i;
+        2'b01: wdata_portA_temp = {DATA_WIDTH{1'bx}};
+        default: wdata_portA_temp = {DATA_WIDTH{1'bx}};
+    endcase
+end
+always @(posedge write_clk_i) begin
+    if(!wen_portB_i) mem[waddr_portB_i] = wdata_portB_temp;
+end
+always @(posedge write_clk_i) begin
+    if(!wen_portB_i) mem[waddr_portB_i] = wdata_portB_temp;
+end
 endmodule

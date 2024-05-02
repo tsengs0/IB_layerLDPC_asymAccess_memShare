@@ -73,6 +73,7 @@ module memShare_control_wrapper
     // Port 0
    //--------------
     // Access-request generator
+    output wire [MEMSHARE_DRC_NUM-1:0] is_drc_o,
     input wire [(RQST_ADDR_BITWIDTH*SHARE_GROUP_SIZE)-1:0] rqst_addr_i,
     input wire [RQST_MODE_BITWIDTH-1:0] modeSet_i,
     // L1PA regFile-mapping unit
@@ -117,6 +118,8 @@ memShare_monitor  memShare_monitor (
     .sys_clk(sys_clk),
     .rstn(rstn)
 );
+assign is_drc_o = is_drc;
+
 memShare_skid_ctrl memShare_skid_ctrl (
     .isColAddr_skid_o(isColAddr_skid),
     .pipeCycle_begin_i(pipeCycle_begin),

@@ -26,7 +26,9 @@ logic sys_clk;
 generic_mem_preloader#(.PAGE_NUM(L1PA_REGFILE_PAGE_NUM), .PAGE_SIZE(L1PA_REGFILE_PAGE_WIDTH)) regFile_loader;
 scu_memShare_tb_seq_class tb_seq;
 int SIM_TIME;
-
+//----------------------------------------------------------------
+// DUT
+//----------------------------------------------------------------
 memShare_control_wrapper memShare_control_wrapper (
   .rqst_addr_i(rqst_addr_i),
   .modeSet_i(modeSet_i),
@@ -38,7 +40,38 @@ memShare_control_wrapper memShare_control_wrapper (
   .rstn(rstn),
   .sys_clk(sys_clk)
 );
+//----------------------------------------------------------------
+// Dummy models
+//----------------------------------------------------------------
+localparam MSGPASS_BUFF_WR_ENABLE = 1'b0;
+localparam MSGPASS_BUFF_WR_DISABLE = 1'b1;
+dmu_msgPass_buffer  dmu_msgPass_buffer (
+//    .write_port_conflict_o(write_port_conflict_o),
+    .rdata_portA_o(rdata_portA_o),
+//    .rdata_portB_o(rdata_portB_o),
+    .raddr_portA_i(raddr_portA_i),
+//    .raddr_portB_i(raddr_portB_i),
+//    .wdata_portA_i(wdata_portA_i),
+//    .wdata_portB_i(wdata_portB_i),
+//    .waddr_portA_i(waddr_portA_i),
+//    .waddr_portB_i(waddr_portB_i),
+    .read_clk_i(sys_clk),
+//    .write_clk_i(sys_clk),
+    .wen_portA_i(MSGPASS_BUFF_WR_DISABLE),
+    .wen_portB_i(MSGPASS_BUFF_WR_DISABLE),
+    .rstn(rstn)
+);
 
+dmy_msgPass_addr_gen  dmy_msgPass_addr_gen (
+    .addr_o(addr_o),
+    .is_drc_i(is_drc_i),
+    .incrementSrc_sel_i(incrementSrc_sel_i),
+    .sys_clk(sys_clk),
+    .rstn(rstn)
+);
+//----------------------------------------------------------------
+// Test Patterns
+//----------------------------------------------------------------
 initial begin
     sys_clk = TB_CLK_INITIAL_LEVEL;
     forever #(TB_CLK_PERIOD/2) sys_clk = ~sys_clk;

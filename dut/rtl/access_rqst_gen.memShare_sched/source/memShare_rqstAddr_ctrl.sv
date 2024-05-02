@@ -44,12 +44,7 @@ localparam OPERAND_TRACK_DEPTH = 2;
 //----------------------------------------------------------------
 // To rebase the rqst address due to the DRC result
 //----------------------------------------------------------------
-always @(posedge sys_clk) begin: rqstAddr_rebase
-    if(!rstn) base_addr_o <= (msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH)'(MSGPASS_ADDR_BASE);
-    else if(scu_begin_i) base_addr_o <= (msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH)'(MSGPASS_ADDR_BASE);
-    else if(exclusive_drc_1) drc_base_addr_o <= 
-    else drc_base_addr_o <= drc_base_addr_o + 1;
-end
+
 //----------------------------------------------------------------
 // Generation of the adder's operand to output the rqst addr. for 
 // the mesage-passing buffer
