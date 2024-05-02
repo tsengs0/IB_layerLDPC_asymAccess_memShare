@@ -29,6 +29,7 @@ module memShare_rqstAddr_ctrl
     output logic [memShare_config_pkg::MSGPASS_RD_ADDR_WIDTH-1:0] increment_operand_o,
     output logic [msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH-1:0] drc_base_addr_o,
 
+    input logic [memShare_config_pkg::MSGPASS_RD_ADDR_WIDTH-1:0] msgPass_raddr_operand_i,
     input logic [MEMSHARE_DRC_NUM-1:0] is_drc_i,
     input logic scu_begin_i, // Indicating the start point of the SCU.memShare() 
     input logic sys_clk,
@@ -38,18 +39,11 @@ module memShare_rqstAddr_ctrl
 //----------------------------------------------------------------
 // Local variables, nets, parameters
 //----------------------------------------------------------------
+localparam OPERAND_TRACK_DEPTH = 2;
 
-//----------------------------------------------------------------
-// DRC factor checking
-//----------------------------------------------------------------
-// According to the design spec., only DRC1 will cause an address rebase
-logic exclusive_drc_1 = is_drc_i[MEMSHARE_DRC1]==1'b1 &&
-                        is_drc_i[MEMSHARE_DRC2]==1'b0 &&
-                        is_drc_i[MEMSHARE_DRC3]==1'b0;
 //----------------------------------------------------------------
 // To rebase the rqst address due to the DRC result
 //----------------------------------------------------------------
-
 always @(posedge sys_clk) begin: rqstAddr_rebase
     if(!rstn) base_addr_o <= (msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH)'(MSGPASS_ADDR_BASE);
     else if(scu_begin_i) base_addr_o <= (msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH)'(MSGPASS_ADDR_BASE);
@@ -60,8 +54,21 @@ end
 // Generation of the adder's operand to output the rqst addr. for 
 // the mesage-passing buffer
 //----------------------------------------------------------------
+logic [memShare_config_pkg::MSGPASS_RD_ADDR_WIDTH-1:0] operand_track_pop;
+pipeReg_insert #(
+    .BITWIDTH (memShare_config_pkg::MSGPASS_RD_ADDR_WIDTH), //! Bitwidth of the designated signals
+    .PIPELINE_STAGE (OPERAND_TRACK_DEPTH) //! Number of the pipeline stages
+) operand_track (
+    .pipe_reg_o (operand_track_pop[memShare_config_pkg::MSGPASS_RD_ADDR_WIDTH-1:0]),
+    .sig_net_i (msgPass_raddr_operand_i[memShare_config_pkg::MSGPASS_RD_ADDR_WIDTH-1:0]),
+    .pipeLoad_en_i ({OPERAND_TRACK_DEPTH{1'b1}}),
+    .sys_clk (sys_clk),
+    .rstn (rstn)
+);
+
 always @(posedge sys_clk) begin: rqstAddr_operand_gen
-    if(!rstn) increment_operand_o <= 0;
-    else if(exclusive_drc_1) 
+    if(!rstn) increment_operand_o <= 1;
+    else if(is_drc_i[MEMSHARE_DRC1]) increment_operand_o <= operand_track_pop;
+    else increment_operand_o <= 1;
 end
 endmodule

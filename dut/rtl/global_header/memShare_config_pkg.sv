@@ -64,6 +64,11 @@ typedef enum logic [RQST_ADDR_BITWIDTH-1:0] {
 //-----------------------------------------------------------------------------------------------------
 localparam MSGPASS_RD_ADDR_WIDTH = 5; // tentative
 localparam MSGPASS_ADDR_BASE = 100;
+localparam MSGPASS_BASEADDR_NUM = 4; // (1) Permuted C2V, driven by L2PA, Lth layer
+                                     // (3) Intermediate V2C, driven by VNU.f0, Lth layer
+                                     // (4) Intermediate V2C, driven by VNU.f0, (L+1)th layer
+                                     // (5) Intermediate V2C, driven by VNU.f0, (L+2)th layer
+localparam MSGPASS_BASEADDR_AGG = MSGPASS_RD_ADDR_WIDTH*MSGPASS_BASEADDR_NUM; // aggregation of all base addresses
 //-----------------------------------------------------------------------------------------------------
 // Configuration of L1BS
 //-----------------------------------------------------------------------------------------------------

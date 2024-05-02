@@ -60,7 +60,9 @@ end
 // To detect the assertion of each design rule
 //----------------------------------------------------
 logic [MEMSHARE_DRC_NUM-1:0] is_drc /*verilator split_var*/;
-assign is_drc[MEMSHARE_DRC1] = rd_2seq_track[0];
+assign is_drc[MEMSHARE_DRC1] = rd_2seq_track[0] & 
+                               ~is_drc[MEMSHARE_DRC2] &
+                               ~is_drc[MEMSHARE_DRC3];
 assign is_drc[MEMSHARE_DRC2] = &rd_2seq_track[2:0];
 assign is_drc[MEMSHARE_DRC3] = is_drc[MEMSHARE_DRC2] &
                                 ~rd_2seq_track[3] &
