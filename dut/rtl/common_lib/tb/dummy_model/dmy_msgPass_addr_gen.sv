@@ -30,7 +30,8 @@ module dmy_msgPass_addr_gen
     output logic [msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH-1:0] addr_o,    
 
     input logic [MEMSHARE_DRC_NUM-1:0] is_drc_i,
-    input logic [msgPass_config_pkg::INCREMENT_SRC_SEL_WIDTH-1:0] incrementSrc_sel_i,
+    input logic buffer_read_begin_i,
+//    input logic [msgPass_config_pkg::INCREMENT_SRC_SEL_WIDTH-1:0] incrementSrc_sel_i,
     input logic sys_clk,
     input logic rstn
 );
@@ -72,13 +73,20 @@ memShare_rqstAddr_ctrl  memShare_rqstAddr_ctrl (
     .rstn(rstn)
 );
 
-assign increment_src_vec[0] = increment_val_pipe0;
-assign increment_src_vec[1] = 1;
-assign increment_src_vec[2] = memShare_increment_val;
-assign increment_val_net[INCREMENT_VAL_WIDTH-1:0] = increment_src_vec[incrementSrc_sel_i];
-always @(posedge sys_clk) if(!rstn) increment_val_pipe0 <= 0; else increment_val_pipe0 <= increment_val_net;
+always @(*) begin: increment_logic 
+    increment_src_vec[0] = increment_val_pipe0 + 1'b1;
+end
+assign increment_src_vec[1] = memShare_increment_val;
+assign increment_val_net[INCREMENT_VAL_WIDTH-1:0] = (is_drc_i[MEMSHARE_DRC1]==1'b1) ? increment_src_vec[1] : increment_src_vec[0];
+always @(posedge sys_clk) if(buffer_read_begin_i) increment_val_pipe0 <= 0; else increment_val_pipe0 <= increment_val_net;
 //----------------------------------------------------------------
 // Binary adder
 //----------------------------------------------------------------
-assign addr_o[ADDR_WIDTH-1:0] = base_addr[INCREMENT_VAL_WIDTH-1:0]+increment_val_net[INCREMENT_VAL_WIDTH-1:0];
+localparam int ADDR_ZERO_PAD_WIDTH = ADDR_WIDTH-INCREMENT_VAL_WIDTH;
+generate;
+if(ADDR_ZERO_PAD_WIDTH > 0)
+    assign addr_o[ADDR_WIDTH-1:0] = {{ADDR_ZERO_PAD_WIDTH{1'b0}}, base_addr[INCREMENT_VAL_WIDTH-1:0]}+{{ADDR_ZERO_PAD_WIDTH{1'b0}}, increment_val_net[INCREMENT_VAL_WIDTH-1:0]};
+else // ADDR_ZERO_PAD_WIDTH==0, and ADDR_ZERO_PAD_WIDTH<0 should be prohibidded
+    assign addr_o[ADDR_WIDTH-1:0] = base_addr[INCREMENT_VAL_WIDTH-1:0]+increment_val_net[INCREMENT_VAL_WIDTH-1:0];
+endgenerate
 endmodule

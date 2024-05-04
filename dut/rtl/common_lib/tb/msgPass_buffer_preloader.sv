@@ -1,7 +1,7 @@
-// Latest date: 27th April, 2024
+// Latest date: 1st May, 2024
 // Developer: Bo-Yu Tseng
 // Email: tsengs0@gamil.com
-// Module name: generic_mem_preloader
+// Module name: msgPass_buffer_preloader
 // 
 // # I/F
 // 1) Output:
@@ -14,9 +14,9 @@
 //    A ROM/RAM preloader module for ease of the simulation
 `include "generic_mem_preloader_config.vh"
 
-class generic_mem_preloader #(
-    parameter int PAGE_NUM = 32,
-    parameter int PAGE_SIZE = 7
+class msgPass_buffer_preloader #(
+    parameter int PAGE_NUM = 128,
+    parameter int PAGE_SIZE = 15
 );
 
 logic [PAGE_SIZE-1:0] mem [0:PAGE_NUM-1];
@@ -45,17 +45,17 @@ endtask
 
 // To force the DUT memory block getting initialised by the given dataset
 task bypass_preload;
-    for(int i=0; i<PAGE_NUM; i++) `DUT_MEM_PATH.`DUT_MEM_CELL[i] = mem[i];
+    for(int i=0; i<PAGE_NUM; i++) `MSGPASS_BUFF_PATH.`MSGPASS_BUFF_MEM_CELL[i] = mem[i];
 
     $display("The DUT memory block has been initialised as follows.");
     $display("=============================");
     $display("Addr:\t\tValue [binary]");
     for(int i=0; i<PAGE_NUM; i++) begin
         // To verify the consistency between the preload dataset and the actual initial values
-        if(`DUT_MEM_PATH.`DUT_MEM_CELL[i] != mem[i])
-          $display("#Inconsistent ---> 0x%08h:\t%h (preload), %h (actual initial value)", i, mem[i], `DUT_MEM_PATH.`DUT_MEM_CELL[i]);
+        if(`MSGPASS_BUFF_PATH.`MSGPASS_BUFF_MEM_CELL[i] != mem[i])
+          $display("#Inconsistent ---> 0x%08h:\t%h (preload), %h (actual initial value)", i, mem[i], `MSGPASS_BUFF_PATH.`MSGPASS_BUFF_MEM_CELL[i]);
         else
-          $display("0x%08h:\t%b", i, `DUT_MEM_PATH.`DUT_MEM_CELL[i]);
+          $display("0x%08h:\t%b", i, `MSGPASS_BUFF_PATH.`MSGPASS_BUFF_MEM_CELL[i]);
     end
     $display("=============================");
 endtask
@@ -65,7 +65,7 @@ task dut_mem_bin_view;
 $display("The DUT memory block:");
 $display("=============================");
 $display("Addr:\t\tValue [binary]");
-for(int i=0; i<PAGE_NUM; i++) $display("0x%08h:\t%b", i, `DUT_MEM_PATH.`DUT_MEM_CELL[i]);
+for(int i=0; i<PAGE_NUM; i++) $display("0x%08h:\t%b", i, `MSGPASS_BUFF_PATH.`MSGPASS_BUFF_MEM_CELL[i]);
 $display("=============================");
 endtask
 endclass

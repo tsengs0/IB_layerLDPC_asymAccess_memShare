@@ -21,6 +21,7 @@ VERILATOR_SRC_OPT = \
 VERILATOR_WAIVE_OPT = \
 	-Wno-UNUSEDPARAM \
 	-Wno-UNUSEDSIGNAL \
+        -Wno-PINMISSING \
 
 VERILATOR_LINT_OPT = \
 	-lint-only -Wall \
@@ -48,11 +49,11 @@ VERILATOR_BUILD_OPT = \
 		--timing \
 		$(VERILATOR_TRACE_FST_OPT) \
 		-o sim \
-		--debug \
 		-j 0 \
 		$(VERILATOR_SRC_OPT) \
 		$(VERILATOR_WAIVE_OPT) \
 		$
+#		--debug
 
 VERILATOR_SIM_OPT = \
 		+SIM_TIME=200 \

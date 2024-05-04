@@ -1,4 +1,4 @@
-module dmu_msgPass_buffer 
+module dmy_msgPass_buffer 
     import msgPass_config_pkg::*;
 (
     // Status control
@@ -27,13 +27,17 @@ localparam DATA_WIDTH = msgPass_config_pkg::MSGPASS_BUFF_RDATA_WIDTH;
 logic [DATA_WIDTH-1:0] mem [0:msgPass_config_pkg::MSGPASS_BUFF_DEPTH-1] = '{default:'0};;
 logic [DATA_WIDTH-1:0] wdata_portA_temp;
 logic [DATA_WIDTH-1:0] wdata_portB_temp;
-logic write_conflict = (waddr_portA_i == waddr_portB_i) ? 1'b1 : 1'b0;
+logic write_conflict = (
+    waddr_portA_i == waddr_portB_i && 
+    wen_portA_i==1'b0 && wen_portB_i==1'b0
+) ? 1'b1 : 1'b0;
+assign write_port_conflict_o = write_conflict;
 //-----------------------------------------------------------------------------------------------------
 // Port A
 //-----------------------------------------------------------------------------------------------------
 // Read operation
 always @(posedge read_clk_i) begin
-    if(wen_i) rdata_portA_o <= mem[raddr_portA_i];
+    if(wen_portA_i) rdata_portA_o <= mem[raddr_portA_i];
     else rdata_portA_o <= {DATA_WIDTH{1'bx}};
 end
 
@@ -55,7 +59,7 @@ end
 //-----------------------------------------------------------------------------------------------------
 // Read operation
 always @(posedge read_clk_i) begin
-    if(wen_i) rdata_portB_o <= mem[raddr_portB_i];
+    if(wen_portB_i) rdata_portB_o <= mem[raddr_portB_i];
     else rdata_portB_o <= {DATA_WIDTH{1'bx}};
 end
 

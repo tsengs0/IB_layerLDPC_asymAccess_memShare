@@ -2,10 +2,13 @@ class scu_memShare_tb_seq_class;
 import memShare_config_pkg::*;
 import scu_memShare_tb_config_pkg::*;
 
+typedef logic [SHARE_GROUP_SIZE-1:0][MSGPASS_BUFF_RQST_WIDTH-1:0] msgPassBuff_rdata_ws5_q3_t;
 typedef logic [SHARE_GROUP_SIZE-1:0][RQST_ADDR_BITWIDTH-1:0] rqst_addr_ws5_q3_t;
 //rand rqst_addr_ws5_q3_t [9:0] rqst_addr_scenarios;
-rqst_addr_ws5_q3_t [9:0] rqst_addr_1seq;
-rqst_addr_ws5_q3_t [9:0] rqst_addr_2seq;
+msgPassBuff_rdata_ws5_q3_t [SHARE_GROUP_SIZE*RQST_ADDR_BITWIDTH-1:0] msgPassBuff_rdata_1seq;
+msgPassBuff_rdata_ws5_q3_t [SHARE_GROUP_SIZE*RQST_ADDR_BITWIDTH-1:0] msgPassBuff_rdata_2seq;
+rqst_addr_ws5_q3_t [SHARE_GROUP_SIZE*RQST_ADDR_BITWIDTH-1:0] rqst_addr_1seq;
+rqst_addr_ws5_q3_t [SHARE_GROUP_SIZE*RQST_ADDR_BITWIDTH-1:0] rqst_addr_2seq;
 logic sys_clk;
 
 int arrival_rqst_id;
@@ -20,6 +23,13 @@ endtask
 
 task scenarioGen_1seq_2seq_2seq;
     // Initial state
+    msgPassBuff_rdata_1seq[0] = {
+        {1'b0, GP2_BANK0_ADDR}, // Signed bit (MSB) is an X value
+        {1'b0, GP2_BANK1_ADDR}, // Signed bit (MSB) is an X value
+        {1'b0, GP1_BANK0_ADDR}, // Signed bit (MSB) is an X value
+        {1'b0, GP1_BANK0_ADDR}, // Signed bit (MSB) is an X value
+        {1'b0, GP1_BANK1_ADDR}  // Signed bit (MSB) is an X value
+    };
     rqst_addr_1seq[0] = {
         GP2_BANK0_ADDR,
         GP2_BANK1_ADDR,
@@ -27,6 +37,9 @@ task scenarioGen_1seq_2seq_2seq;
         GP1_BANK0_ADDR,
         GP1_BANK1_ADDR
     };
+
+    msgPassBuff_rdata_2seq[0] = {(SHARE_GROUP_SIZE){1'b0, GP2_BANK0_ADDR}};
+    msgPassBuff_rdata_2seq[1] = {(SHARE_GROUP_SIZE){1'b0, GP2_BANK1_ADDR}};
     rqst_addr_2seq[0] = {(SHARE_GROUP_SIZE){GP2_BANK0_ADDR}};
     rqst_addr_2seq[1] = {(SHARE_GROUP_SIZE){GP2_BANK1_ADDR}};
     arrival_rqst_id = 0;

@@ -44,11 +44,13 @@ typedef enum {
 localparam SHARE_GROUP_SIZE = 5; // Number of requestors joining a share group (GP1+GP2)
 localparam bit [SHARE_GROUP_SIZE-1:0] SHARE_COL_CONFIG = 5'b10101; //! '1': shared column
 `ifdef DECODER_3bit
+    localparam MSGPASS_BUFF_RQST_WIDTH = 3; // Bit width of every requestor's read data from message-pass buffer (before mag. conversion)
     localparam RQST_ADDR_BITWIDTH = 2; // Bit width of every requestor's column address
     localparam RQST_MODE_BITWIDTH = 3; // Bit width of "mode set signals" for sake of reconfigurability
 `endif // DECODER_3bit
 
 `ifdef DECODER_4bit
+    localparam MSGPASS_BUFF_RQST_WIDTH = 4; // Bit width of every requestor's read data from message-pass buffer (before mag. conversion)
     localparam RQST_ADDR_BITWIDTH = 3; // Bit width of every requestor's column address
     localparam RQST_MODE_BITWIDTH = 7; // Bit width of "mode set signals" for sake of reconfigurability
 `endif // DECODER_4bit
