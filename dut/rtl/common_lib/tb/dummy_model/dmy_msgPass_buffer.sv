@@ -27,7 +27,8 @@ localparam DATA_WIDTH = msgPass_config_pkg::MSGPASS_BUFF_RDATA_WIDTH;
 logic [DATA_WIDTH-1:0] mem [0:msgPass_config_pkg::MSGPASS_BUFF_DEPTH-1] = '{default:'0};;
 logic [DATA_WIDTH-1:0] wdata_portA_temp;
 logic [DATA_WIDTH-1:0] wdata_portB_temp;
-logic write_conflict = (
+logic write_conflict;
+assign write_conflict = (
     waddr_portA_i == waddr_portB_i && 
     wen_portA_i==1'b0 && wen_portB_i==1'b0
 ) ? 1'b1 : 1'b0;

@@ -74,8 +74,7 @@ generic_mem_preloader#(.PAGE_NUM(L1PA_REGFILE_PAGE_NUM), .PAGE_SIZE(L1PA_REGFILE
 //msgPass_buffer_preloader#(.PAGE_NUM(MSGPASS_BUFF_DEPTH), .PAGE_SIZE(MSGPASS_BUFF_RDATA_WIDTH)) msgPass_buffer_loader;
 scu_memShare_tb_seq_class tb_seq;
 int SIM_TIME;
-logic buffer_read_begin;
-
+logic buffer_read_begin, buffer_read_end;
 //----------------------------------------------------------------
 // DUT
 //----------------------------------------------------------------
@@ -106,7 +105,7 @@ dmy_msgPass_buffer  dmy_msgPass_buffer (
     .wdata_portA_i(msgPass_buff_if.wdata_portA_i),
 //    .wdata_portB_i(wdata_portB_i),
     .waddr_portA_i(msgPass_buff_if.waddr_portA_i),
-//    .waddr_portB_i(waddr_portB_i),
+ //   .waddr_portB_i(msgPass_buff_if.waddr_portB_i),
     .read_clk_i(sys_clk),
     .write_clk_i(sys_clk),
     .wen_portA_i(msgPass_buff_if.wen_portA_i),
@@ -119,6 +118,7 @@ dmy_msgPass_addr_gen  dmy_msgPass_addr_gen (
     .is_drc_i(scu_memShare_if.is_drc_o),
   //  .incrementSrc_sel_i(incrementSrc_sel_i),
     .buffer_read_begin_i (buffer_read_begin),
+    .buffer_read_end_i (buffer_read_end),
     .sys_clk(sys_clk),
     .rstn(rstn)
 );
@@ -134,8 +134,15 @@ task common_init;
   regFile_loader.bin_load("tb/config/l1pa_spr_5_gp2Num3_gp2Alloc10101.bin");
   regFile_loader.bin_view;
 
+  @(posedge sys_clk); // dummy delay
+  for(int i=0; i<L1PA_REGFILE_PAGE_NUM; i++)
+      regfile_write(L1PA_REGFILE_ADDR_WIDTH'(i), L1PA_REGFILE_PAGE_WIDTH'(i));
+  @(posedge sys_clk); // dummy delay
+  regFile_loader.dut_mem_bin_view;
+
   msgPass_buff_if.wen_portA_i = MSGPASS_BUFF_WR_DISABLE;
   buffer_read_begin = 1'b0;
+  buffer_read_end = 1'b0;
 endtask
 
 task msgPass_buff_preload;
@@ -188,9 +195,7 @@ initial begin
     common_init;
 
     @(posedge sys_clk); // dummy delay
-    for(int i=0; i<L1PA_REGFILE_PAGE_NUM; i++)
-        regfile_write(L1PA_REGFILE_ADDR_WIDTH'(i), L1PA_REGFILE_PAGE_WIDTH'(i));
-
+    regFile_loader.bypass_preload;
     repeat(5) @(posedge sys_clk); // dummy delay
 
     $display("\n=============================");
@@ -205,7 +210,13 @@ initial begin
     buffer_read_begin = 1'b1;
 
     @(posedge sys_clk);
-    buffer_read_begin = 1'b0;  
+    buffer_read_begin = 1'b0;
+
+    wait(msgPass_buff_if.raddr_portA_i==4);
+    repeat(5) @(posedge sys_clk);
+    buffer_read_end = 1'b1;
+    @(posedge sys_clk);
+    buffer_read_end = 1'b0;
 end
 
 // Control of the simulation time span

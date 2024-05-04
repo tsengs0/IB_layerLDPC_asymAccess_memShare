@@ -27,10 +27,11 @@ module dmy_msgPass_addr_gen
     import msgPass_config_pkg::*;
     import memShare_config_pkg::*;
 (
-    output logic [msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH-1:0] addr_o,    
+    output logic [msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH-1:0] addr_o,
 
     input logic [MEMSHARE_DRC_NUM-1:0] is_drc_i,
-    input logic buffer_read_begin_i,
+    input logic buffer_read_begin_i, // active HIGH, assertion type: pulse
+    input logic buffer_read_end_i, // active HIGH, assertion type: pulse
 //    input logic [msgPass_config_pkg::INCREMENT_SRC_SEL_WIDTH-1:0] incrementSrc_sel_i,
     input logic sys_clk,
     input logic rstn
@@ -41,7 +42,18 @@ module dmy_msgPass_addr_gen
 //----------------------------------------------------------------
 localparam ADDR_WIDTH = msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH;
 localparam INCREMENT_VAL_WIDTH = memShare_config_pkg::MSGPASS_RD_ADDR_WIDTH;
+logic gclk;
 
+//----------------------------------------------------------------
+// Clock gating: the underlying circuit does not work as long as
+// the input signal, buffer_read_begin_i, is not asserted once
+//----------------------------------------------------------------
+logic bufferStart_once, bufferEnd_once, buffer_read_begin_pipe0, buffer_read_end_pipe0;
+always @(posedge sys_clk) if(!rstn) buffer_read_begin_pipe0 <= 0; else buffer_read_begin_pipe0 <= buffer_read_begin_i;
+always @(posedge sys_clk) if(!rstn) buffer_read_end_pipe0 <= 0; else buffer_read_end_pipe0 <= buffer_read_end_i;
+assign bufferStart_once = (buffer_read_begin_pipe0==1'b0 && buffer_read_begin_i==1'b1) ? 1'b1 : 1'b0;
+assign bufferEnd_once = (buffer_read_end_pipe0==1'b0 && buffer_read_end_i==1'b1) ? 1'b1 : 1'b0;
+assign gclk = sys_clk & bufferStart_once & ~bufferEnd_once;
 //----------------------------------------------------------------
 // Operand A: base address
 //----------------------------------------------------------------
@@ -52,7 +64,7 @@ logic [INCREMENT_VAL_WIDTH-1:0] base_addr;
 //    .base_addr_o(base_addr_o),
 //    .baseAddr_aggregation_i(baseAddr_aggregation_i),
 //    .baseAddr_sel_i(baseAddr_sel_i),
-//    .sys_clk(sys_clk),
+//    .sys_clk(gclk),
 //    .rstn(rstn)
 //);
 assign base_addr[INCREMENT_VAL_WIDTH-1:0] = 0; // dummy value for ease of the debugging
@@ -69,7 +81,7 @@ memShare_rqstAddr_ctrl  memShare_rqstAddr_ctrl (
     .msgPass_raddr_operand_i(increment_val_net),
     .is_drc_i(is_drc_i),
 //    .scu_begin_i(scu_begin_i),
-    .sys_clk(sys_clk),
+    .sys_clk(gclk),
     .rstn(rstn)
 );
 
@@ -78,7 +90,7 @@ always @(*) begin: increment_logic
 end
 assign increment_src_vec[1] = memShare_increment_val;
 assign increment_val_net[INCREMENT_VAL_WIDTH-1:0] = (is_drc_i[MEMSHARE_DRC1]==1'b1) ? increment_src_vec[1] : increment_src_vec[0];
-always @(posedge sys_clk) if(buffer_read_begin_i) increment_val_pipe0 <= 0; else increment_val_pipe0 <= increment_val_net;
+always @(posedge gclk) if(buffer_read_begin_i) increment_val_pipe0 <= 0; else increment_val_pipe0 <= increment_val_net;
 //----------------------------------------------------------------
 // Binary adder
 //----------------------------------------------------------------
