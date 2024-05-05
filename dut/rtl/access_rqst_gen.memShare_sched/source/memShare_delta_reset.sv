@@ -33,12 +33,17 @@ module memShare_delta_reset #(
 ) (
     output logic reset_o, // synchrounous reset signal connected to the delta FF
     input logic isGtr_i, // isGtr obtainned from RFMU at SHFIT_GEN state
+    input logic scu_memShare_busy_i, // Asserted within overall SCU.memShare() operation
     input logic sys_clk,
     input logic rstn
 );
 
 always_ff @(posedge sys_clk) begin
     if(!rstn) reset_o <= RST_POLARITY;
-    else reset_o <= reset_o^isGtr_i;
+    else reset_o <= (reset_o^isGtr_i) & scu_memShare_busy_i;
 end
+
+// (Note 1)
+// To fix the "reset_o" to its initial value, i.e. NOSKID, before/outside the SCU.memShare() operation.
+// Otherwise, the X-value propagation will occur.
 endmodule

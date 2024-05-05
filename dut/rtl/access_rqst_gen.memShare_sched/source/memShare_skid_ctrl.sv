@@ -26,6 +26,7 @@ module memShare_skid_ctrl
 (
     output logic isColAddr_skid_o,
 
+    input logic scu_memShare_busy_i, // Asserted within overall SCU.memShare() operation
     input logic pipeCycle_begin_i, // To indicate the beginning of a pipeline cycle for SCU.memShare()
     input logic isGtr_i, // isGtr obtainned from RFMU at SHFIT_GEN state
     input logic sys_clk,
@@ -46,9 +47,14 @@ always_ff @(posedge sys_clk) if(!rstn) isGtr_pipe <= {{(MAX_ALLOC_SEQ_NUM){1'b0}
 assign isGtr_back2back = (isGtr_pipe==ALL_ONE) ? 1'b1 : 1'b0;// all-one detection
 
 // Final decision of skid buffer selector based on the design rule 1, 2 and 3
-assign isColAddr_skid_net = (!isColAddr_skid_pipe0 & isGtr_i) ? SKID : // Design Rule 1
+assign isColAddr_skid_net = (!scu_memShare_busy_i) ? NOSKID : // Refer to the Note 1
+                            (!isColAddr_skid_pipe0 & isGtr_i) ? SKID : // Design Rule 1
                             (isGtr_back2back) ? NOSKID :
                             (isGtr_i && pipeCycle_begin_i) ? NOSKID : isColAddr_skid_pipe0;
 always_ff @(posedge sys_clk) if(!rstn) isColAddr_skid_pipe0 <= 1'b0; else isColAddr_skid_pipe0 <= isColAddr_skid_net;
 assign isColAddr_skid_o = isColAddr_skid_pipe0;
+
+// (Note 1)
+// To fix the "isColAddr_skid_net" to its initial value, i.e. NOSKID, before/outside the SCU.memShare() operation.
+// Otherwise, the X-value propagation will occur.
 endmodule

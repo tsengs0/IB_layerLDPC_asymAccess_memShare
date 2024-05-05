@@ -22,6 +22,7 @@ import memShare_config_pkg::*;
 logic [memShare_config_pkg::MEMSHARE_DRC_NUM-1:0] is_drc_o;
 logic [(memShare_config_pkg::RQST_ADDR_BITWIDTH*memShare_config_pkg::SHARE_GROUP_SIZE)-1:0] rqst_addr_i;
 logic [memShare_config_pkg::RQST_MODE_BITWIDTH-1:0] modeSet_i;
+logic scu_memShare_busy_i;
 // L1PA regFile-mapping unit
 logic [$clog2(memShare_config_pkg::SHARE_GROUP_SIZE)-1:0] l1pa_shift_o; //! shift control instructing the L1PA
 logic isGtr_o; //! 1: currently accessed L1PA_SPR is the last pattern in the chosen L1PA shift sequence
@@ -89,6 +90,7 @@ memShare_control_wrapper memShare_control_wrapper (
   .is_drc_o (scu_memShare_if.is_drc_o),
   .rqst_addr_i(scu_memShare_if.rqst_addr_i),
   .modeSet_i(scu_memShare_if.modeSet_i),
+  .scu_memShare_busy_i(scu_memShare_if.scu_memShare_busy_i),
   .l1pa_shift_o(scu_memShare_if.l1pa_shift_o),
   .isGtr_o(scu_memShare_if.isGtr_o),
   .regType0_waddr_i(scu_memShare_if.regType0_waddr_i),
@@ -137,7 +139,8 @@ task common_init;
   regFile_loader = new();
 //  msgPass_buffer_loader = new();
   tb_seq = new();
-
+ 
+  scu_memShare_if.scu_memShare_busy_i = 1'b0;
   msgPass_buff_if.wen_portA_i = MSGPASS_BUFF_WR_DISABLE;
   buffer_read_begin = 1'b0;
   buffer_read_end = 1'b0;
@@ -231,8 +234,10 @@ initial begin
     // Preload the 1seq-to-2seq-2se request pattern to the message-pass buffer
     msgPass_buff_preload;
 
-    @(posedge sys_clk);
-    buffer_read_begin = #1 1'b1;
+    @(posedge sys_clk) begin
+        scu_memShare_if.scu_memShare_busy_i <= 1'b1;
+        buffer_read_begin <= 1'b1;
+    end
 
     @(posedge sys_clk);
     buffer_read_begin = #1 1'b0;
@@ -240,8 +245,11 @@ initial begin
     wait(msgPass_buff_if.raddr_portA_i==4);
     repeat(5) @(posedge sys_clk);
     buffer_read_end = 1'b1;
-    @(posedge sys_clk);
-    buffer_read_end = 1'b0;
+    
+    @(posedge sys_clk) begin
+        scu_memShare_if.scu_memShare_busy_i <= 1'b0;
+        buffer_read_end <= 1'b0;
+    end
 end
 
 // Control of the simulation time span

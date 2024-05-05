@@ -76,6 +76,7 @@ module memShare_control_wrapper
     output wire [MEMSHARE_DRC_NUM-1:0] is_drc_o,
     input wire [(RQST_ADDR_BITWIDTH*SHARE_GROUP_SIZE)-1:0] rqst_addr_i,
     input wire [RQST_MODE_BITWIDTH-1:0] modeSet_i,
+    input wire scu_memShare_busy_i, // Asserted within overall SCU.memShare() operation
     // L1PA regFile-mapping unit
     output wire [$clog2(SHARE_GROUP_SIZE)-1:0] l1pa_shift_o, //! shift control instructing the L1PA
     output wire isGtr_o, //! 1: currently accessed L1PA_SPR is the last pattern in the chosen L1PA shift sequence
@@ -122,6 +123,7 @@ assign is_drc_o = is_drc;
 
 memShare_skid_ctrl memShare_skid_ctrl (
     .isColAddr_skid_o(isColAddr_skid),
+    .scu_memShare_busy_i (scu_memShare_busy_i),
     .pipeCycle_begin_i(pipeCycle_begin),
     .isGtr_i(isGtr_net),
     .sys_clk(sys_clk),
@@ -199,6 +201,7 @@ memShare_delta_reset #(
 ) memShare_delta_reset (
     .reset_o (deltaPipe_rstn), // synchrounous reset signal connected to the delta FF
     .isGtr_i (isGtr_fb_net), // isGtr obtainned from RFMU at SHFIT_GEN state
+    .scu_memShare_busy_i (scu_memShare_busy_i), // To indicate the beginning of a pipeline cycle for SCU.memShare()
     .sys_clk (sys_clk),
     .rstn (rstn)
 );
