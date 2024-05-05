@@ -99,7 +99,10 @@ generate;
         reg [DELTA_BITWIDTH-1:0] shift_delta_pipe0;
         reg [REGFILE_RD_CYCLE-1:0] isGtr_pipe0;
         always @(posedge sys_clk) begin if(!rstn) l1pa_shift_pipe0 <= 0; else l1pa_shift_pipe0 <= rdata_net[`L1PA_SHIFT_SEGMENT_MSB:`L1PA_SHIFT_SEGMENT_LSB]; end
-/*Special care!*/ always @(posedge sys_clk) begin if(!deltaPipe_rstn) shift_delta_pipe0 <= 0; else shift_delta_pipe0 <= rdata_net[`L1PA_SHIFT_DELTA_SEGMENT_MSB:`L1PA_SHIFT_DELTA_SEGMENT_LSB]; end
+        
+        // Special care! 
+        always @(posedge sys_clk) begin if(!deltaPipe_rstn) shift_delta_pipe0 <= 0; else shift_delta_pipe0 <= rdata_net[`L1PA_SHIFT_DELTA_SEGMENT_MSB:`L1PA_SHIFT_DELTA_SEGMENT_LSB]; end
+        
         always @(posedge sys_clk) begin if(!rstn) isGtr_pipe0 <= 0; else isGtr_pipe0 <= rdata_net[0]; end
 
         assign l1pa_shift_o = l1pa_shift_pipe0;

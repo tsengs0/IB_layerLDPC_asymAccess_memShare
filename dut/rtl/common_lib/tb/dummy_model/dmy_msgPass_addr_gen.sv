@@ -48,11 +48,17 @@ logic gclk;
 // Clock gating: the underlying circuit does not work as long as
 // the input signal, buffer_read_begin_i, is not asserted once
 //----------------------------------------------------------------
-logic bufferStart_once, bufferEnd_once, buffer_read_begin_pipe0, buffer_read_end_pipe0;
-always @(posedge sys_clk) if(!rstn) buffer_read_begin_pipe0 <= 0; else buffer_read_begin_pipe0 <= buffer_read_begin_i;
-always @(posedge sys_clk) if(!rstn) buffer_read_end_pipe0 <= 0; else buffer_read_end_pipe0 <= buffer_read_end_i;
-assign bufferStart_once = (buffer_read_begin_pipe0==1'b0 && buffer_read_begin_i==1'b1) ? 1'b1 : 1'b0;
-assign bufferEnd_once = (buffer_read_end_pipe0==1'b0 && buffer_read_end_i==1'b1) ? 1'b1 : 1'b0;
+logic bufferStart_once, bufferEnd_once;
+always @(posedge sys_clk) begin: bufferRdStart_once_latch
+    if(!rstn) bufferStart_once <= 1'b0; 
+    else if(buffer_read_end_i) bufferStart_once <= 1'b0;
+    else if(buffer_read_begin_i) bufferStart_once <= 1'b1;
+end
+always @(posedge sys_clk) begin: bufferRdEnd_once_latch
+    if(!rstn) bufferEnd_once <= 1'b0; 
+    else if(buffer_read_begin_i) bufferEnd_once <= 1'b0;
+    else if(buffer_read_end_i) bufferEnd_once <= 1'b1;
+end
 assign gclk = sys_clk & bufferStart_once & ~bufferEnd_once;
 //----------------------------------------------------------------
 // Operand A: base address
@@ -72,6 +78,7 @@ assign base_addr[INCREMENT_VAL_WIDTH-1:0] = 0; // dummy value for ease of the de
 // Operand B: incrementing value
 //----------------------------------------------------------------
 logic [INCREMENT_VAL_WIDTH-1:0] increment_val_net;
+logic [INCREMENT_VAL_WIDTH-1:0] increment_val_mux;
 logic [INCREMENT_VAL_WIDTH-1:0] increment_val_pipe0;
 logic [INCREMENT_VAL_WIDTH-1:0] increment_src_vec [0:INCREMENT_SRC_NUM-1];
 logic [INCREMENT_VAL_WIDTH-1:0] memShare_increment_val;
@@ -90,15 +97,16 @@ always @(*) begin: increment_logic
 end
 assign increment_src_vec[1] = memShare_increment_val;
 assign increment_val_net[INCREMENT_VAL_WIDTH-1:0] = (is_drc_i[MEMSHARE_DRC1]==1'b1) ? increment_src_vec[1] : increment_src_vec[0];
-always @(posedge gclk) if(buffer_read_begin_i) increment_val_pipe0 <= 0; else increment_val_pipe0 <= increment_val_net;
+assign increment_val_mux[INCREMENT_VAL_WIDTH-1:0] = (buffer_read_begin_i==1'b1 || bufferStart_once==1'b0) ? {INCREMENT_VAL_WIDTH{1'b0}} : increment_val_net[INCREMENT_VAL_WIDTH-1:0];
+always @(posedge gclk, negedge rstn) if(!rstn) increment_val_pipe0 <= 0; else increment_val_pipe0 <= increment_val_mux[INCREMENT_VAL_WIDTH-1:0];
 //----------------------------------------------------------------
 // Binary adder
 //----------------------------------------------------------------
 localparam int ADDR_ZERO_PAD_WIDTH = ADDR_WIDTH-INCREMENT_VAL_WIDTH;
 generate;
 if(ADDR_ZERO_PAD_WIDTH > 0)
-    assign addr_o[ADDR_WIDTH-1:0] = {{ADDR_ZERO_PAD_WIDTH{1'b0}}, base_addr[INCREMENT_VAL_WIDTH-1:0]}+{{ADDR_ZERO_PAD_WIDTH{1'b0}}, increment_val_net[INCREMENT_VAL_WIDTH-1:0]};
+    assign addr_o[ADDR_WIDTH-1:0] = {{ADDR_ZERO_PAD_WIDTH{1'b0}}, base_addr[INCREMENT_VAL_WIDTH-1:0]}+{{ADDR_ZERO_PAD_WIDTH{1'b0}}, increment_val_mux[INCREMENT_VAL_WIDTH-1:0]};
 else // ADDR_ZERO_PAD_WIDTH==0, and ADDR_ZERO_PAD_WIDTH<0 should be prohibidded
-    assign addr_o[ADDR_WIDTH-1:0] = base_addr[INCREMENT_VAL_WIDTH-1:0]+increment_val_net[INCREMENT_VAL_WIDTH-1:0];
+    assign addr_o[ADDR_WIDTH-1:0] = base_addr[INCREMENT_VAL_WIDTH-1:0]+increment_val_mux[INCREMENT_VAL_WIDTH-1:0];
 endgenerate
 endmodule

@@ -40,7 +40,7 @@ genvar i;
 generate;
 for(i=0; i<BASE_NUM; i=i+1) begin: baseAddr_buffer_vec
     always @(posedge sys_clk) begin
-        if(!rstn) base_addr_buffer[i] <= 0;
+        if(!rstn) baseAddr_pipe0[i] <= 0;
         else baseAddr_pipe0[i] = baseAddr_aggregation_i[(i+1)*ADDR_WIDTH-1:i*ADDR_WIDTH];
     end
 end

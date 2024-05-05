@@ -39,7 +39,7 @@ assign write_port_conflict_o = write_conflict;
 // Read operation
 always @(posedge read_clk_i) begin
     if(wen_portA_i) rdata_portA_o <= mem[raddr_portA_i];
-    else rdata_portA_o <= {DATA_WIDTH{1'bx}};
+    else rdata_portA_o <= {DATA_WIDTH{1'b0}};
 end
 
 // Write operation
@@ -61,7 +61,7 @@ end
 // Read operation
 always @(posedge read_clk_i) begin
     if(wen_portB_i) rdata_portB_o <= mem[raddr_portB_i];
-    else rdata_portB_o <= {DATA_WIDTH{1'bx}};
+    else rdata_portB_o <= {DATA_WIDTH{1'b0}};
 end
 
 // Write operation
