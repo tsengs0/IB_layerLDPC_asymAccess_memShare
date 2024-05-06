@@ -107,7 +107,8 @@ generate;
 
         assign l1pa_shift_o = l1pa_shift_pipe0;
         assign shift_delta_o = shift_delta_pipe0;
-        assign isGtr_o = isGtr_pipe0;
+//        assign isGtr_o = isGtr_pipe0;
+        assign isGtr_o = rdata_net[0];
     end
     else begin
         reg [SHIFT_BITWIDTH-1:0] l1pa_shift_pipeN  [0:REGFILE_RD_CYCLE-1];

@@ -52,7 +52,8 @@ assign isColAddr_skid_net = (!scu_memShare_busy_i) ? NOSKID : // Refer to the No
                             (isGtr_back2back) ? NOSKID :
                             (isGtr_i && pipeCycle_begin_i) ? NOSKID : isColAddr_skid_pipe0;
 always_ff @(posedge sys_clk) if(!rstn) isColAddr_skid_pipe0 <= 1'b0; else isColAddr_skid_pipe0 <= isColAddr_skid_net;
-assign isColAddr_skid_o = isColAddr_skid_pipe0;
+//assign isColAddr_skid_o = isColAddr_skid_pipe0;
+assign isColAddr_skid_o = isColAddr_skid_net;
 
 // (Note 1)
 // To fix the "isColAddr_skid_net" to its initial value, i.e. NOSKID, before/outside the SCU.memShare() operation.

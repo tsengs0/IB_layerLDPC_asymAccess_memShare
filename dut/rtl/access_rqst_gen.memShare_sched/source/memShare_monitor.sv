@@ -64,7 +64,7 @@ assign is_drc[MEMSHARE_DRC1] = rd_2seq_track[0] &
                                ~is_drc[MEMSHARE_DRC2] &
                                ~is_drc[MEMSHARE_DRC3];
 assign is_drc[MEMSHARE_DRC2] = &rd_2seq_track[2:0];
-assign is_drc[MEMSHARE_DRC3] = is_drc[MEMSHARE_DRC2] &
+assign is_drc[MEMSHARE_DRC3] = //is_drc[MEMSHARE_DRC2] &
                                 ~rd_2seq_track[3] &
                                 arrival_rqst_track[3];
 assign is_drc_o[MEMSHARE_DRC_NUM-1:0] = is_drc[MEMSHARE_DRC_NUM-1:0];
