@@ -51,8 +51,9 @@ always_comb begin: drc_skid_sel
     casez({scu_memShare_busy_i, isGtr_i, isGtr_back2back, pipeCycle_begin_i})
         4'b0???: isColAddr_skid_net = NOSKID; // Refer to the Note 1
         4'b1100: isColAddr_skid_net = SKID;   // Design Rule 1
-        4'b1?1?: isColAddr_skid_net = NOSKID; // Design Rule 2
-        4'b1??1: isColAddr_skid_net = NOSKID; // Design Rule 3
+        4'b1?10: isColAddr_skid_net = NOSKID; // Design Rule 2
+        4'b1?01: isColAddr_skid_net = NOSKID; // Design Rule 3
+        4'b1?11: isColAddr_skid_net = NOSKID; // Design Rule 2 and 3
         default: isColAddr_skid_net = NOSKID;
     endcase
 end: drc_skid_sel
