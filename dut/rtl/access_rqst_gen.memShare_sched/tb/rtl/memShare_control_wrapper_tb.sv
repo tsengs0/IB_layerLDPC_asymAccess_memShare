@@ -184,13 +184,13 @@ task msgPass_buff_preload;
     // The following patterns are treated as error margin of the testbench
     //tb_seq.posedge_clk(1);
     @(posedge sys_clk) begin
-        msgPass_buff_if.waddr_portA_i <= 3;
+        msgPass_buff_if.waddr_portA_i <= {(msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH){1'bx}};
         msgPass_buff_if.wdata_portA_i <= tb_seq.msgPassBuff_rdata_1seq[0];
     end
     
     //tb_seq.posedge_clk(1);
     @(posedge sys_clk) begin
-        msgPass_buff_if.waddr_portA_i <= 4;
+        msgPass_buff_if.waddr_portA_i <= {(msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH){1'bx}};
         msgPass_buff_if.wdata_portA_i <= tb_seq.msgPassBuff_rdata_1seq[0];
     end
 

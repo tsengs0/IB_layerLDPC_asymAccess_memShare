@@ -82,10 +82,8 @@ pipeReg_insert #(
     .BITWIDTH(L1PA_SHIFT_BITWIDTH+L1PA_SHIFT_BITWIDTH+1),
     .PIPELINE_STAGE(SHIFTDELTA_ALU_CYCLE)
 ) shiftGen_pipe_out (
-//    .pipe_reg_o    ({l1pa_shift_pipeN[L1PA_SHIFT_BITWIDTH:0], isGtr_fb_pipeN}),
     .pipe_reg_o ({l1pa_shift_pipeN[L1PA_SHIFT_BITWIDTH-1:0], shiftDelta_pipeN[L1PA_SHIFT_BITWIDTH-1:0], isGtr_fb_pipeN}),
     //.stage_probe_o (),
-//    .sig_net_i     ({l1pa_shift_net[L1PA_SHIFT_BITWIDTH:0], isGtr_fb_i}),
     .sig_net_i     ({l1pa_shift_fb_i[L1PA_SHIFT_BITWIDTH-1:0], shiftDelta_fb_i[L1PA_SHIFT_BITWIDTH-1:0], isGtr_fb_i}),
     .pipeLoad_en_i ({SHIFTDELTA_ALU_CYCLE{1'b1}}),
     .sys_clk       (sys_clk),

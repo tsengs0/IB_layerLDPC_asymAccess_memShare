@@ -36,7 +36,7 @@ module memShare_skid_ctrl
 // Internal signals and local parameters
 localparam logic NOSKID = 1'b0;
 localparam logic SKID = 1'b1;
-localparam ALL_ONE = 2**(MAX_ALLOC_SEQ_NUM+1)-1;
+localparam COND_BACK2BACK = 2**(MAX_ALLOC_SEQ_NUM+1)-1;
 logic isColAddr_skid_pipe0;
 logic isColAddr_skid_net;
 
@@ -44,13 +44,19 @@ logic isColAddr_skid_net;
 logic [MAX_ALLOC_SEQ_NUM:0] isGtr_pipe;
 logic isGtr_back2back;
 always_ff @(posedge sys_clk) if(!rstn) isGtr_pipe <= {{(MAX_ALLOC_SEQ_NUM){1'b0}}, NOSKID}; else isGtr_pipe[MAX_ALLOC_SEQ_NUM:0] <= {isGtr_pipe[MAX_ALLOC_SEQ_NUM-1:0], isGtr_i};
-assign isGtr_back2back = (isGtr_pipe==ALL_ONE) ? 1'b1 : 1'b0;// all-one detection
+assign isGtr_back2back = ({isGtr_pipe[MAX_ALLOC_SEQ_NUM-1:0], isGtr_i}==COND_BACK2BACK) ? 1'b1 : 1'b0; // Either 4'b0111 or 4'b1111 matches the back-to-back condition, i.e. DRC2 
 
 // Final decision of skid buffer selector based on the design rule 1, 2 and 3
-assign isColAddr_skid_net = (!scu_memShare_busy_i) ? NOSKID : // Refer to the Note 1
-                            (!isColAddr_skid_pipe0 & isGtr_i) ? SKID : // Design Rule 1
-                            (isGtr_back2back) ? NOSKID :
-                            (isGtr_i && pipeCycle_begin_i) ? NOSKID : isColAddr_skid_pipe0;
+always_comb begin: drc_skid_sel
+    casez({scu_memShare_busy_i, isGtr_i, isGtr_back2back, pipeCycle_begin_i})
+        4'b0???: isColAddr_skid_net = NOSKID; // Refer to the Note 1
+        4'b1100: isColAddr_skid_net = SKID;   // Design Rule 1
+        4'b1?1?: isColAddr_skid_net = NOSKID; // Design Rule 2
+        4'b1??1: isColAddr_skid_net = NOSKID; // Design Rule 3
+        default: isColAddr_skid_net = NOSKID;
+    endcase
+end: drc_skid_sel
+
 always_ff @(posedge sys_clk) if(!rstn) isColAddr_skid_pipe0 <= 1'b0; else isColAddr_skid_pipe0 <= isColAddr_skid_net;
 //assign isColAddr_skid_o = isColAddr_skid_pipe0;
 assign isColAddr_skid_o = isColAddr_skid_net;
