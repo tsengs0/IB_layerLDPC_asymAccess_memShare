@@ -33,10 +33,22 @@ module memShare_skidBuffer #(
 
 localparam NOSKID = 1'b0;
 localparam SKID = 1'b1;
-logic [SHARE_GROUP_SIZE-1:0] skid_buffer;
+logic [SHARE_GROUP_SIZE-1:0] skid_buffer [0:1];
+//always @(posedge sys_clk) begin
+//    if(!rstn) skid_buffer <= 0;
+//    else skid_buffer <= share_rqstFlag_i;
+//end
+
 always @(posedge sys_clk) begin
-    if(!rstn) skid_buffer <= 0;
-    else skid_buffer <= share_rqstFlag_i;
+    if(!rstn) begin
+        skid_buffer[0] <= 0;
+        skid_buffer[1] <= 0;
+    end
+    else begin
+        skid_buffer[0] <= share_rqstFlag_i;
+        skid_buffer[1] <= skid_buffer[0];
+    end
 end
-assign share_rqstFlag_o = (isColAddr_skid_i == NOSKID) ? share_rqstFlag_i : skid_buffer;
+
+assign share_rqstFlag_o = (isColAddr_skid_i == NOSKID) ? share_rqstFlag_i : skid_buffer[1];
 endmodule

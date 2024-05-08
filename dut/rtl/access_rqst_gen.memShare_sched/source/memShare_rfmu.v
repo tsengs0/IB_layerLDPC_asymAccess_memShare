@@ -48,6 +48,7 @@ module memShare_rfmu #(
 ) (
       // I/F to L1PA
       output wire [L1PA_SHIFT_BITWIDTH-1:0] l1pa_shift_o, //! shift control instructing the L1PA
+      output wire shiftCal_err_o, //! Calculation error of the L1PA shift occurs
       // I/F to regFile
       output wire [REGFILE_ADDR_WIDTH-1:0] regFile_raddr_o, //! read address for memShare_regFile
       // I/F to system
@@ -74,21 +75,25 @@ assign regFile_raddr_o[REGFILE_ADDR_WIDTH-1:0] = mapped_addr[REGFILE_ADDR_WIDTH-
 wire [L1PA_SHIFT_BITWIDTH:0] l1pa_shift_net;
 
 // Pipeline stage 2 for the upstream module
-wire [L1PA_SHIFT_BITWIDTH:0] l1pa_shift_pipeN;
+wire [L1PA_SHIFT_BITWIDTH-1:0] l1pa_shift_pipeN;
+wire [L1PA_SHIFT_BITWIDTH-1:0] shiftDelta_pipeN;
 wire isGtr_fb_pipeN;
 pipeReg_insert #(
-    .BITWIDTH(L1PA_SHIFT_BITWIDTH+1+1),
+    .BITWIDTH(L1PA_SHIFT_BITWIDTH+L1PA_SHIFT_BITWIDTH+1),
     .PIPELINE_STAGE(SHIFTDELTA_ALU_CYCLE)
-) shiftDelta_alu_pipeReg (
-    .pipe_reg_o    ({l1pa_shift_pipeN[L1PA_SHIFT_BITWIDTH:0], isGtr_fb_pipeN}),
+) shiftGen_pipe_out (
+//    .pipe_reg_o    ({l1pa_shift_pipeN[L1PA_SHIFT_BITWIDTH:0], isGtr_fb_pipeN}),
+    .pipe_reg_o ({l1pa_shift_pipeN[L1PA_SHIFT_BITWIDTH-1:0], shiftDelta_pipeN[L1PA_SHIFT_BITWIDTH-1:0], isGtr_fb_pipeN}),
     //.stage_probe_o (),
-    .sig_net_i     ({l1pa_shift_net[L1PA_SHIFT_BITWIDTH:0], isGtr_fb_i}),
+//    .sig_net_i     ({l1pa_shift_net[L1PA_SHIFT_BITWIDTH:0], isGtr_fb_i}),
+    .sig_net_i     ({l1pa_shift_fb_i[L1PA_SHIFT_BITWIDTH-1:0], shiftDelta_fb_i[L1PA_SHIFT_BITWIDTH-1:0], isGtr_fb_i}),
     .pipeLoad_en_i ({SHIFTDELTA_ALU_CYCLE{1'b1}}),
     .sys_clk       (sys_clk),
     .rstn          (rstn)
 );
-assign l1pa_shift_net[L1PA_SHIFT_BITWIDTH:0] = {1'b0, l1pa_shift_fb_i[L1PA_SHIFT_BITWIDTH-1:0]} + {1'b0, shiftDelta_fb_i[L1PA_SHIFT_BITWIDTH-1:0]};
-assign l1pa_shift_o[L1PA_SHIFT_BITWIDTH-1:0] = l1pa_shift_pipeN[L1PA_SHIFT_BITWIDTH-1:0];
+assign l1pa_shift_net[L1PA_SHIFT_BITWIDTH:0] = {1'b0, l1pa_shift_pipeN[L1PA_SHIFT_BITWIDTH-1:0]} + {1'b0, shiftDelta_pipeN[L1PA_SHIFT_BITWIDTH-1:0]};
+assign l1pa_shift_o[L1PA_SHIFT_BITWIDTH-1:0] = l1pa_shift_net[L1PA_SHIFT_BITWIDTH-1:0];
+assign shiftCal_err_o = l1pa_shift_net[L1PA_SHIFT_BITWIDTH]; // A carry on should not occur in the L1PA shift calculation
 
 // Pipeline stage 2 for the upstream module: RFMU-to-Sytem (the system is T.B.D.)
 assign isGtr_o = isGtr_fb_pipeN;

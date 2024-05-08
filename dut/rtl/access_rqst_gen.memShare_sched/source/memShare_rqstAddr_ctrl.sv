@@ -60,10 +60,10 @@ pipeReg_insert #(
     .sys_clk (sys_clk),
     .rstn (rstn)
 );
-
-always @(posedge sys_clk) begin: rqstAddr_operand_gen
-    if(!rstn) increment_operand_o <= 1;
-    else if(is_drc_i[MEMSHARE_DRC1]) increment_operand_o <= operand_track_pop;
-    else increment_operand_o <= 1;
-end
+assign increment_operand_o = operand_track_pop;
+//always @(posedge sys_clk) begin: rqstAddr_operand_gen
+//    if(!rstn) increment_operand_o <= 1;
+//    else if(is_drc_i[MEMSHARE_DRC1]) increment_operand_o <= operand_track_pop;
+//    else increment_operand_o <= 1;
+//end
 endmodule
