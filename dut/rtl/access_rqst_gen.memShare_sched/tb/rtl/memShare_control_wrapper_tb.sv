@@ -226,7 +226,7 @@ initial begin
     regFile_loader.bypass_preload;
     repeat(5) @(posedge sys_clk); // dummy delay
 
-    $display("\SCU.memShare()'s internal regFile preloading is completed.\n=============================");
+    $display("SCU.memShare()'s internal regFile preloading is completed.\n=============================");
     regFile_loader.dut_mem_bin_view;
 
     tb_seq.scenarioGen_1seq_2seq_2seq;
