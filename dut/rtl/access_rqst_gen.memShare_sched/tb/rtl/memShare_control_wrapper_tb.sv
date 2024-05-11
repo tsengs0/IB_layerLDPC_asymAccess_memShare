@@ -54,6 +54,11 @@ logic wen_portA_i; // active LOW
 logic wen_portB_i; // active LOW
 endinterface
 
+interface sys_ctrl_if;
+logic sys_clk;
+logic rstn; // acitve LOW
+endinterface
+
 
 `include "global_debug.vh"
 
@@ -65,21 +70,20 @@ import scu_memShare_tb_config_pkg::*;
 //----------------------------------------------------------------
 // Local variables, nets, parameters, I/F, etc.
 //----------------------------------------------------------------
-msgPass_buff_if msgPass_buff_if();
-logic sys_clk;
-logic rstn;
+msgPass_buff_if tb_msgPass_buff_if();
+sys_ctrl_if tb_sys_ctrl_if();
 
 //----------------------------------------------------------------
 // DUT's I/O ports
 //----------------------------------------------------------------
-scu_memShare_if scu_memShare_if();
+scu_memShare_if tb_scu_memShare_if();
 
 //----------------------------------------------------------------
 // Local variables, nets, parameters, I/Fs, tasks, functions, etc.
 //----------------------------------------------------------------
-`include "scu_memShare_tb_class.sv"
 generic_mem_preloader#(.PAGE_NUM(L1PA_REGFILE_PAGE_NUM), .PAGE_SIZE(L1PA_REGFILE_PAGE_WIDTH)) regFile_loader;
 //msgPass_buffer_preloader#(.PAGE_NUM(MSGPASS_BUFF_DEPTH), .PAGE_SIZE(MSGPASS_BUFF_RDATA_WIDTH)) msgPass_buffer_loader;
+scu_memShare_tb_class tb_lib;
 scu_memShare_tb_seq_class tb_seq;
 int SIM_TIME=200;
 logic buffer_read_begin, buffer_read_end;
@@ -87,61 +91,60 @@ logic buffer_read_begin, buffer_read_end;
 // DUT
 //----------------------------------------------------------------
 memShare_control_wrapper memShare_control_wrapper (
-  .is_drc_o (scu_memShare_if.is_drc_o),
-  .rqst_addr_i(scu_memShare_if.rqst_addr_i),
-  .modeSet_i(scu_memShare_if.modeSet_i),
-  .scu_memShare_busy_i(scu_memShare_if.scu_memShare_busy_i),
-  .l1pa_shift_o(scu_memShare_if.l1pa_shift_o),
-  .isGtr_o(scu_memShare_if.isGtr_o),
-  .regType0_waddr_i(scu_memShare_if.regType0_waddr_i),
-  .regType0_wdata_i(scu_memShare_if.regType0_wdata_i),
-  .regType0_we_i(scu_memShare_if.regType0_we_i),
-  .rstn(rstn),
-  .sys_clk(sys_clk)
+  .is_drc_o (tb_scu_memShare_if.is_drc_o),
+  .rqst_addr_i(tb_scu_memShare_if.rqst_addr_i),
+  .modeSet_i(tb_scu_memShare_if.modeSet_i),
+  .scu_memShare_busy_i(tb_scu_memShare_if.scu_memShare_busy_i),
+  .l1pa_shift_o(tb_scu_memShare_if.l1pa_shift_o),
+  .isGtr_o(tb_scu_memShare_if.isGtr_o),
+  .regType0_waddr_i(tb_scu_memShare_if.regType0_waddr_i),
+  .regType0_wdata_i(tb_scu_memShare_if.regType0_wdata_i),
+  .regType0_we_i(tb_scu_memShare_if.regType0_we_i),
+  .rstn(tb_sys_ctrl_if.rstn),
+  .sys_clk(tb_sys_ctrl_if.sys_clk)
 );
-`rqstAddr_mag_convert(scu_memShare_if.rqst_addr_i, msgPass_buff_if.rdata_portA_o);
+`rqstAddr_mag_convert(tb_scu_memShare_if.rqst_addr_i, tb_msgPass_buff_if.rdata_portA_o);
 //----------------------------------------------------------------
 // Dummy models
 //----------------------------------------------------------------
-localparam MSGPASS_BUFF_WR_ENABLE = 1'b0;
-localparam MSGPASS_BUFF_WR_DISABLE = 1'b1;
 dmy_msgPass_buffer  dmy_msgPass_buffer (
 //    .write_port_conflict_o(write_port_conflict_o),
-    .rdata_portA_o(msgPass_buff_if.rdata_portA_o),
+    .rdata_portA_o(tb_msgPass_buff_if.rdata_portA_o),
 //    .rdata_portB_o(rdata_portB_o),
-    .raddr_portA_i(msgPass_buff_if.raddr_portA_i),
+    .raddr_portA_i(tb_msgPass_buff_if.raddr_portA_i),
 //    .raddr_portB_i(raddr_portB_i),
-    .wdata_portA_i(msgPass_buff_if.wdata_portA_i),
+    .wdata_portA_i(tb_msgPass_buff_if.wdata_portA_i),
 //    .wdata_portB_i(wdata_portB_i),
-    .waddr_portA_i(msgPass_buff_if.waddr_portA_i),
- //   .waddr_portB_i(msgPass_buff_if.waddr_portB_i),
-    .read_clk_i(sys_clk),
-    .write_clk_i(sys_clk),
-    .wen_portA_i(msgPass_buff_if.wen_portA_i),
+    .waddr_portA_i(tb_msgPass_buff_if.waddr_portA_i),
+ //   .waddr_portB_i(tb_msgPass_buff_if.waddr_portB_i),
+    .read_clk_i(tb_sys_ctrl_if.sys_clk),
+    .write_clk_i(tb_sys_ctrl_if.sys_clk),
+    .wen_portA_i(tb_msgPass_buff_if.wen_portA_i),
     .wen_portB_i(MSGPASS_BUFF_WR_DISABLE),
-    .rstn(rstn)
+    .rstn(tb_sys_ctrl_if.rstn)
 );
 
 dmy_msgPass_addr_gen  dmy_msgPass_addr_gen (
-    .addr_o(msgPass_buff_if.raddr_portA_i),
-    .is_drc_i(scu_memShare_if.is_drc_o),
+    .addr_o(tb_msgPass_buff_if.raddr_portA_i),
+    .is_drc_i(tb_scu_memShare_if.is_drc_o),
   //  .incrementSrc_sel_i(incrementSrc_sel_i),
     .buffer_read_begin_i (buffer_read_begin),
     .buffer_read_end_i (buffer_read_end),
-    .sys_clk(sys_clk),
-    .rstn(rstn)
+    .sys_clk(tb_sys_ctrl_if.sys_clk),
+    .rstn(tb_sys_ctrl_if.rstn)
 );
 //----------------------------------------------------------------
 // Test Patterns
 //----------------------------------------------------------------
 // Common initialisation
 task common_init;
-  regFile_loader = new();
+  regFile_loader = new(); // importing the configuration file to the testbench only
+  tb_lib = new(tb_sys_ctrl_if, tb_msgPass_buff_if, tb_scu_memShare_if);
 //  msgPass_buffer_loader = new();
-  tb_seq = new();
+  tb_seq = new(tb_sys_ctrl_if, tb_msgPass_buff_if, tb_scu_memShare_if);
  
-  scu_memShare_if.scu_memShare_busy_i = 1'b0;
-  msgPass_buff_if.wen_portA_i = MSGPASS_BUFF_WR_DISABLE;
+  tb_scu_memShare_if.scu_memShare_busy_i = 1'b0;
+  tb_msgPass_buff_if.wen_portA_i = MSGPASS_BUFF_WR_DISABLE;
   buffer_read_begin = 1'b0;
   buffer_read_end = 1'b0;
 `ifdef VERILATOR_SIM
@@ -154,52 +157,19 @@ task common_init;
 
   regFile_loader.bin_view;
 
-  @(posedge sys_clk); // dummy delay
+  @(posedge tb_sys_ctrl_if.sys_clk); // dummy delay
   for(int i=0; i<L1PA_REGFILE_PAGE_NUM; i++)
-      regfile_write(L1PA_REGFILE_ADDR_WIDTH'(i), L1PA_REGFILE_PAGE_WIDTH'(i));
-  @(posedge sys_clk); // dummy delay
+      tb_lib.regfile_write(L1PA_REGFILE_ADDR_WIDTH'(i), L1PA_REGFILE_PAGE_WIDTH'(i));
+  @(posedge tb_sys_ctrl_if.sys_clk); // dummy delay
   regFile_loader.dut_mem_bin_view;
 endtask
 
 task msgPass_buff_preload;
-    msgPass_buff_if.wen_portA_i = MSGPASS_BUFF_WR_ENABLE;
-    //tb_seq.posedge_clk(1);
-    @(posedge sys_clk) begin
-        msgPass_buff_if.waddr_portA_i <= 0;
-        msgPass_buff_if.wdata_portA_i <= tb_seq.msgPassBuff_rdata_1seq[0];
-    end
-    
-    //tb_seq.posedge_clk(1);
-    @(posedge sys_clk) begin
-        msgPass_buff_if.waddr_portA_i <= 1;
-        msgPass_buff_if.wdata_portA_i <= tb_seq.msgPassBuff_rdata_2seq[0];
-    end
-    
-    //tb_seq.posedge_clk(1);
-    @(posedge sys_clk) begin
-        msgPass_buff_if.waddr_portA_i <= 2;
-        msgPass_buff_if.wdata_portA_i <= tb_seq.msgPassBuff_rdata_2seq[1];
-    end
-    
-    // The following patterns are treated as error margin of the testbench
-    //tb_seq.posedge_clk(1);
-    @(posedge sys_clk) begin
-        msgPass_buff_if.waddr_portA_i <= {(msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH){1'bx}};
-        msgPass_buff_if.wdata_portA_i <= tb_seq.msgPassBuff_rdata_1seq[0];
-    end
-    
-    //tb_seq.posedge_clk(1);
-    @(posedge sys_clk) begin
-        msgPass_buff_if.waddr_portA_i <= {(msgPass_config_pkg::MSGPASS_BUFF_ADDR_WIDTH){1'bx}};
-        msgPass_buff_if.wdata_portA_i <= tb_seq.msgPassBuff_rdata_1seq[0];
-    end
-
-    //tb_seq.posedge_clk(1);
-    @(posedge sys_clk) begin
-        msgPass_buff_if.wen_portA_i <= MSGPASS_BUFF_WR_DISABLE;
-    end
+    tb_seq.scenarioGen_1seq_2seq_2seq; // Generating the designated test sequece
+    tb_seq.scenarioLoad_1seq_2seq_2seq; // Loading the designated test sequence
 
     tb_seq.posedge_clk(1);
+    $display("\n=============================");
     $display("Message-Pass Buffer:");
     $display("Addr:\t\tValue [binary]");
     $display("=============================");
@@ -210,44 +180,42 @@ task msgPass_buff_preload;
 endtask
 
 initial begin
-    sys_clk = TB_CLK_INITIAL_LEVEL;
-    forever #(TB_CLK_PERIOD/2) sys_clk = ~sys_clk;
+  tb_sys_ctrl_if.sys_clk = TB_CLK_INITIAL_LEVEL;
+  forever #(TB_CLK_PERIOD/2) tb_sys_ctrl_if.sys_clk = ~tb_sys_ctrl_if.sys_clk;
 end
 
 initial begin
-    rstn = 1'b0;
-    #(TB_CLK_PERIOD*10); rstn = 1'b1;
+  tb_sys_ctrl_if.rstn = 1'b0;
+    #(TB_CLK_PERIOD*10); tb_sys_ctrl_if.rstn = 1'b1;
 end
 
 initial begin
     common_init;
 
-    @(posedge sys_clk); // dummy delay
+    @(posedge tb_sys_ctrl_if.sys_clk); // dummy delay
     regFile_loader.bypass_preload;
-    repeat(5) @(posedge sys_clk); // dummy delay
+    repeat(5) @(posedge tb_sys_ctrl_if.sys_clk); // dummy delay
 
     $display("SCU.memShare()'s internal regFile preloading is completed.\n=============================");
     regFile_loader.dut_mem_bin_view;
 
-    tb_seq.scenarioGen_1seq_2seq_2seq;
-
     // Preload the 1seq-to-2seq-2se request pattern to the message-pass buffer
     msgPass_buff_preload;
 
-    @(posedge sys_clk) begin
-        scu_memShare_if.scu_memShare_busy_i <= 1'b1;
+    @(posedge tb_sys_ctrl_if.sys_clk) begin
+        tb_scu_memShare_if.scu_memShare_busy_i <= 1'b1;
         buffer_read_begin <= 1'b1;
     end
 
-    @(posedge sys_clk);
+    @(posedge tb_sys_ctrl_if.sys_clk);
     buffer_read_begin = #1 1'b0;
      
-    wait(msgPass_buff_if.raddr_portA_i==4);
-    repeat(5) @(posedge sys_clk);
+    wait(tb_msgPass_buff_if.raddr_portA_i==4);
+    repeat(5) @(posedge tb_sys_ctrl_if.sys_clk);
     buffer_read_end = 1'b1;
     
-    @(posedge sys_clk) begin
-        scu_memShare_if.scu_memShare_busy_i <= 1'b0;
+    @(posedge tb_sys_ctrl_if.sys_clk) begin
+        tb_scu_memShare_if.scu_memShare_busy_i <= 1'b0;
         buffer_read_end <= 1'b0;
     end
 end
@@ -258,8 +226,8 @@ initial begin
   $finish;
 end
 
-always @(sysTick_record.sys_tick) $display("(%d cc) -------------------------> %b", sysTick_record.sys_tick, scu_memShare_if.rqst_addr_i);
-sysTick_record #(.SYSTICK_MAX_NUM(500)) sysTick_record(.sys_clk(sys_clk), .rstn(rstn));
+always @(sysTick_record.sys_tick) $display("(%d cc) -------------------------> %b", sysTick_record.sys_tick, tb_scu_memShare_if.rqst_addr_i);
+sysTick_record #(.SYSTICK_MAX_NUM(500)) sysTick_record(.sys_clk(tb_sys_ctrl_if.sys_clk), .rstn(tb_sys_ctrl_if.rstn));
 //dumpvars_config#(.FST_DUMP_EN(1), .VCD_DUMP_EN(0)) dumpvars_config;
 //args_config args_config;
 endmodule
