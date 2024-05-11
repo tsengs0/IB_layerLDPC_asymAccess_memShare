@@ -117,6 +117,7 @@ dmy_msgPass_buffer  dmy_msgPass_buffer (
 //    .wdata_portB_i(wdata_portB_i),
     .waddr_portA_i(tb_msgPass_buff_if.waddr_portA_i),
  //   .waddr_portB_i(tb_msgPass_buff_if.waddr_portB_i),
+    .cen_i(dmy_msgPass_addr_gen.bufferStart_once_pipe0),
     .read_clk_i(tb_sys_ctrl_if.sys_clk),
     .write_clk_i(tb_sys_ctrl_if.sys_clk),
     .wen_portA_i(tb_msgPass_buff_if.wen_portA_i),
@@ -165,8 +166,10 @@ task common_init;
 endtask
 
 task msgPass_buff_preload;
-    tb_seq.scenarioGen_1seq_2seq_2seq; // Generating the designated test sequece
-    tb_seq.scenarioLoad_1seq_2seq_2seq; // Loading the designated test sequence
+//    tb_seq.scenarioGen_1seq_2seq_2seq; // Generating the designated test sequece
+//    tb_seq.scenarioLoad_1seq_2seq_2seq; // Loading the designated test sequence
+    tb_seq.scenarioGen_2seq_2seq; // Generating the designated test sequece
+    tb_seq.scenarioLoad_2seq_2seq; // Loading the designated test sequence
 
     tb_seq.posedge_clk(1);
     $display("\n=============================");
@@ -207,9 +210,10 @@ initial begin
         buffer_read_begin <= 1'b1;
     end
 
-    @(posedge tb_sys_ctrl_if.sys_clk);
-    buffer_read_begin = #1 1'b0;
-     
+    @(posedge tb_sys_ctrl_if.sys_clk) begin
+        buffer_read_begin <= 1'b0;
+    end
+         
     wait(tb_msgPass_buff_if.raddr_portA_i==4);
     repeat(5) @(posedge tb_sys_ctrl_if.sys_clk);
     buffer_read_end = 1'b1;
@@ -227,7 +231,7 @@ initial begin
 end
 
 always @(sysTick_record.sys_tick) $display("(%d cc) -------------------------> %b", sysTick_record.sys_tick, tb_scu_memShare_if.rqst_addr_i);
-sysTick_record #(.SYSTICK_MAX_NUM(500)) sysTick_record(.sys_clk(tb_sys_ctrl_if.sys_clk), .rstn(tb_sys_ctrl_if.rstn));
+sysTick_record #(.SYSTICK_MAX_NUM(500)) sysTick_record(.tick_en_i(dmy_msgPass_addr_gen.bufferStart_once_pipe0), .sys_clk(tb_sys_ctrl_if.sys_clk), .rstn(tb_sys_ctrl_if.rstn));
 //dumpvars_config#(.FST_DUMP_EN(1), .VCD_DUMP_EN(0)) dumpvars_config;
 //args_config args_config;
 endmodule

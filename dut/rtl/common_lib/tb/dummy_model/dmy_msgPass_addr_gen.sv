@@ -48,12 +48,13 @@ logic gclk;
 // Clock gating: the underlying circuit does not work as long as
 // the input signal, buffer_read_begin_i, is not asserted once
 //----------------------------------------------------------------
-logic bufferStart_once, bufferEnd_once;
+logic bufferStart_once, bufferEnd_once, bufferStart_once_pipe0;
 always @(posedge sys_clk) begin: bufferRdStart_once_latch
     if(!rstn) bufferStart_once <= 1'b0; 
     else if(buffer_read_end_i) bufferStart_once <= 1'b0;
     else if(buffer_read_begin_i) bufferStart_once <= 1'b1;
 end
+always @(posedge sys_clk) if(!rstn) bufferStart_once_pipe0 <= 0; else bufferStart_once_pipe0 <= bufferStart_once;
 always @(posedge sys_clk) begin: bufferRdEnd_once_latch
     if(!rstn) bufferEnd_once <= 1'b0; 
     else if(buffer_read_begin_i) bufferEnd_once <= 1'b0;
@@ -92,12 +93,12 @@ memShare_rqstAddr_ctrl  memShare_rqstAddr_ctrl (
     .rstn(rstn)
 );
 
-always @(*) begin: increment_logic 
+always @(*) begin: increment_logic
     increment_src_vec[0] = increment_val_pipe0 + 1'b1;
 end
 assign increment_src_vec[1] = memShare_increment_val;
 assign increment_val_net[INCREMENT_VAL_WIDTH-1:0] = (is_drc_i[MEMSHARE_DRC1]==1'b1) ? increment_src_vec[1] : increment_src_vec[0];
-assign increment_val_mux[INCREMENT_VAL_WIDTH-1:0] = (buffer_read_begin_i==1'b1 || bufferStart_once==1'b0) ? {INCREMENT_VAL_WIDTH{1'b0}} : increment_val_net[INCREMENT_VAL_WIDTH-1:0];
+assign increment_val_mux[INCREMENT_VAL_WIDTH-1:0] = (buffer_read_begin_i==1'b1 || bufferStart_once==1'b0 || bufferStart_once_pipe0==1'b0) ? {INCREMENT_VAL_WIDTH{1'b0}} : increment_val_net[INCREMENT_VAL_WIDTH-1:0];
 always @(posedge gclk, negedge rstn) if(!rstn) increment_val_pipe0 <= 0; else increment_val_pipe0 <= increment_val_mux[INCREMENT_VAL_WIDTH-1:0];
 //----------------------------------------------------------------
 // Binary adder
