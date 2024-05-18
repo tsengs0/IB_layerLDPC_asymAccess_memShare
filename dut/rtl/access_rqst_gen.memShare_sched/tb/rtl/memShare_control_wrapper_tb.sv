@@ -168,8 +168,12 @@ endtask
 task msgPass_buff_preload;
 //    tb_seq.scenarioGen_1seq_2seq_2seq; // Generating the designated test sequece
 //    tb_seq.scenarioLoad_1seq_2seq_2seq; // Loading the designated test sequence
-    tb_seq.scenarioGen_2seq_2seq; // Generating the designated test sequece
-    tb_seq.scenarioLoad_2seq_2seq; // Loading the designated test sequence
+//    tb_seq.scenarioGen_2seq_2seq; // Generating the designated test sequece
+//    tb_seq.scenarioLoad_2seq_2seq; // Loading the designated test sequence
+//    tb_seq.scenarioGen_1seq_1seq; // Generating the designated test sequece
+//    tb_seq.scenarioLoad_1seq_1seq; // Loading the designated test sequence
+    tb_seq.scenarioGen_2seq_1seq_2seq; // Generating the designated test sequece
+    tb_seq.scenarioLoad_2seq_1seq_2seq; // Loading the designated test sequence
 
     tb_seq.posedge_clk(1);
     $display("\n=============================");

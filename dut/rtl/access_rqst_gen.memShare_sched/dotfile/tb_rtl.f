@@ -2,6 +2,7 @@
 +incdir+./tb/rtl
 ./tb/rtl/scu_memShare_tb_config_pkg.sv
 ./tb/rtl/scu_memShare_tb_class.sv
+./tb/sva/testcase_1seq_to_1seq_spec.sv
 ../common_lib/tb/generic_mem_preloader.sv
 ../common_lib/tb/msgPass_buffer_preloader.sv
 ../common_lib/tb/dummy_model/dmy_msgPass_addr_gen.sv

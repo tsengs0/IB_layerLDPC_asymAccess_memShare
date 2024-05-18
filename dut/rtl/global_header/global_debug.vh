@@ -9,4 +9,8 @@
 `define VIVADO_SIM
 //`define VERILATOR_SIM
 
+//-----------------------------------------------------------------------------
+// Macros for the SVAs
+//-----------------------------------------------------------------------------
+`define DUT_ROOT memShare_control_wrapper_tb
 `endif // __GLOBAL_DEBUG_H
