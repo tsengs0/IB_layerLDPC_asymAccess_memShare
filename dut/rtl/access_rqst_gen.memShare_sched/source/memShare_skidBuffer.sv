@@ -27,6 +27,7 @@ module memShare_skidBuffer #(
 
     input logic [SHARE_GROUP_SIZE-1:0] share_rqstFlag_i, //! Request flags to shared group 2
     input logic isColAddr_skid_i, // Selector signal for the skid buffer
+    input logic update_mask_i, // To disable the buffer update, active HIGH
     input logic sys_clk,
     input logic rstn
 );
@@ -44,11 +45,16 @@ always @(posedge sys_clk) begin
         skid_buffer[0] <= 0;
         skid_buffer[1] <= 0;
     end
+    else if(update_mask_i) begin
+        skid_buffer[0] <= skid_buffer[0];
+        skid_buffer[1] <= skid_buffer[1];
+    end
     else begin
         skid_buffer[0] <= share_rqstFlag_i;
         skid_buffer[1] <= skid_buffer[0];
     end
 end
 
-assign share_rqstFlag_o = (isColAddr_skid_i == NOSKID) ? share_rqstFlag_i : skid_buffer[1];
+logic temp; always @(posedge sys_clk) if(!rstn) temp<=0; else temp<=isColAddr_skid_i;
+assign share_rqstFlag_o = (isColAddr_skid_i == NOSKID && temp != SKID) ? share_rqstFlag_i : skid_buffer[0];
 endmodule

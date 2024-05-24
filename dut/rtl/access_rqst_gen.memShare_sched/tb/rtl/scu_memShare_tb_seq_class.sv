@@ -62,6 +62,7 @@ task scenarioGen_1seq_2seq_2seq;
 endtask
 //----------------------------------------------------------------------------
 // To load the test sequence, 1seq-to-2seq-to-2seq, into the message-pass buffer
+// Expected shift sequence: {4}, {0, 1}, {0, 1}
 //----------------------------------------------------------------------------
 task scenarioLoad_1seq_2seq_2seq;
     msgPass_buff_vif.wen_portA_i = MSGPASS_BUFF_WR_ENABLE;
@@ -116,15 +117,28 @@ task scenarioGen_2seq_2seq;
     };
 
     msgPassBuff_rdata_2seq[0] = {(SHARE_GROUP_SIZE){1'b0, GP2_BANK0_ADDR}};
-    msgPassBuff_rdata_2seq[1] = {(SHARE_GROUP_SIZE){1'b0, GP2_BANK1_ADDR}};
     rqst_addr_2seq[0] = {(SHARE_GROUP_SIZE){GP2_BANK0_ADDR}};
-    rqst_addr_2seq[1] = {(SHARE_GROUP_SIZE){GP2_BANK1_ADDR}};
+    msgPassBuff_rdata_2seq[1] = {
+        {1'b0, GP1_BANK0_ADDR}, // Signed bit (MSB) is an X value
+        {1'b0, GP2_BANK1_ADDR}, // Signed bit (MSB) is an X value
+        {1'b0, GP2_BANK0_ADDR}, // Signed bit (MSB) is an X value
+        {1'b0, GP2_BANK0_ADDR}, // Signed bit (MSB) is an X value
+        {1'b0, GP2_BANK1_ADDR}  // Signed bit (MSB) is an X value
+    };
+    rqst_addr_2seq[1] = {
+        GP1_BANK0_ADDR,
+        GP2_BANK1_ADDR,
+        GP2_BANK0_ADDR,
+        GP2_BANK0_ADDR,
+        GP2_BANK1_ADDR
+    };
     arrival_rqst_id = 0;
     $display("-----> rqst_addr_2seq[0]: {0x%h, 0x%h, 0x%h, 0x%h, 0x%h}", rqst_addr_2seq[0][4], rqst_addr_2seq[0][3], rqst_addr_2seq[0][2], rqst_addr_2seq[0][1], rqst_addr_2seq[0][0]);
     $display("-----> rqst_addr_2seq[1]: {0x%h, 0x%h, 0x%h, 0x%h, 0x%h}", rqst_addr_2seq[1][4], rqst_addr_2seq[1][3], rqst_addr_2seq[1][2], rqst_addr_2seq[1][1], rqst_addr_2seq[1][0]);
 endtask
 //----------------------------------------------------------------------------
 // To load the test sequence, 2seq-to-2seq, into the message-pass buffer
+// Expected shift sequence: {0, 1}, {0, 1}
 //----------------------------------------------------------------------------
 task scenarioLoad_2seq_2seq;
     msgPass_buff_vif.wen_portA_i = MSGPASS_BUFF_WR_ENABLE;
@@ -178,17 +192,17 @@ task scenarioGen_1seq_1seq;
         GP1_BANK1_ADDR
     };
     msgPassBuff_rdata_1seq[1] = {
-        {1'b0, GP1_BANK0_ADDR}, // Signed bit (MSB) is an X value
-        {1'b0, GP2_BANK1_ADDR}, // Signed bit (MSB) is an X value
         {1'b0, GP2_BANK0_ADDR}, // Signed bit (MSB) is an X value
+        {1'b0, GP1_BANK1_ADDR}, // Signed bit (MSB) is an X value
         {1'b0, GP1_BANK0_ADDR}, // Signed bit (MSB) is an X value
+        {1'b0, GP2_BANK0_ADDR}, // Signed bit (MSB) is an X value
         {1'b0, GP1_BANK1_ADDR}  // Signed bit (MSB) is an X value
     };
     rqst_addr_1seq[1] = {
-        GP1_BANK0_ADDR,
-        GP2_BANK1_ADDR,
         GP2_BANK0_ADDR,
+        GP1_BANK1_ADDR,
         GP1_BANK0_ADDR,
+        GP2_BANK0_ADDR,
         GP1_BANK1_ADDR
     };
 
@@ -203,6 +217,7 @@ task scenarioGen_1seq_1seq;
 endtask
 //----------------------------------------------------------------------------
 // To load the test sequence, 1seq-to-1seq, into the message-pass buffer
+// Expected shift sequence: {4}, {2}
 //----------------------------------------------------------------------------
 task scenarioLoad_1seq_1seq;
     msgPass_buff_vif.wen_portA_i = MSGPASS_BUFF_WR_ENABLE;
@@ -257,9 +272,21 @@ task scenarioGen_2seq_1seq_2seq;
     };
 
     msgPassBuff_rdata_2seq[0] = {(SHARE_GROUP_SIZE){1'b0, GP2_BANK0_ADDR}};
-    msgPassBuff_rdata_2seq[1] = {(SHARE_GROUP_SIZE){1'b0, GP2_BANK1_ADDR}};
     rqst_addr_2seq[0] = {(SHARE_GROUP_SIZE){GP2_BANK0_ADDR}};
-    rqst_addr_2seq[1] = {(SHARE_GROUP_SIZE){GP2_BANK1_ADDR}};
+    msgPassBuff_rdata_2seq[1] = {
+        {1'b0, GP1_BANK0_ADDR}, // Signed bit (MSB) is an X value
+        {1'b0, GP2_BANK1_ADDR}, // Signed bit (MSB) is an X value
+        {1'b0, GP2_BANK0_ADDR}, // Signed bit (MSB) is an X value
+        {1'b0, GP2_BANK0_ADDR}, // Signed bit (MSB) is an X value
+        {1'b0, GP2_BANK1_ADDR}  // Signed bit (MSB) is an X value
+    };
+    rqst_addr_2seq[1] = {
+        GP1_BANK0_ADDR,
+        GP2_BANK1_ADDR,
+        GP2_BANK0_ADDR,
+        GP2_BANK0_ADDR,
+        GP2_BANK1_ADDR
+    };
     arrival_rqst_id = 0;
     $display("-----> rqst_addr_1seq[0]: {0x%h, 0x%h, 0x%h, 0x%h, 0x%h}", rqst_addr_1seq[0][4], rqst_addr_1seq[0][3], rqst_addr_1seq[0][2], rqst_addr_1seq[0][1], rqst_addr_1seq[0][0]);
     $display("-----> rqst_addr_2seq[0]: {0x%h, 0x%h, 0x%h, 0x%h, 0x%h}", rqst_addr_2seq[0][4], rqst_addr_2seq[0][3], rqst_addr_2seq[0][2], rqst_addr_2seq[0][1], rqst_addr_2seq[0][0]);
@@ -267,6 +294,7 @@ task scenarioGen_2seq_1seq_2seq;
 endtask
 //----------------------------------------------------------------------------
 // To load the test sequence, 2seq-to-1seq-to-2seq, into the message-pass buffer
+// Expected shift sequence: {0, 1}, {3}, {0, 1}
 //----------------------------------------------------------------------------
 task scenarioLoad_2seq_1seq_2seq;
     msgPass_buff_vif.wen_portA_i = MSGPASS_BUFF_WR_ENABLE;

@@ -125,7 +125,7 @@ memShare_skid_ctrl memShare_skid_ctrl (
     .isColAddr_skid_o(isColAddr_skid),
     .scu_memShare_busy_i (scu_memShare_busy_i),
     .pipeCycle_begin_i(pipeCycle_begin),
-    .isGtr_i(isGtr_net),
+    .isGtr_i(isGtr_net),//(memShare_rfmu.isGtr_fb_i),
     .sys_clk(sys_clk),
     .rstn(rstn)
   );
@@ -161,6 +161,7 @@ memShare_skidBuffer #(
     .share_rqstFlag_o (share_rqstFlag_skid),
     .share_rqstFlag_i (share_rqstFlag_net),
     .isColAddr_skid_i (isColAddr_skid),
+    .update_mask_i (memShare_rfmu.isGtr_fb_i), 
     .sys_clk (sys_clk),
     .rstn (rstn)
 );
