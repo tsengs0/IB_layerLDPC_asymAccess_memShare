@@ -13,7 +13,17 @@
 `else
 	`define QUAN_SIZE 4
 `endif
+//-----------------------------------------------------------------------------------------------------
+// SCU.memShare()
+//-----------------------------------------------------------------------------------------------------
+//`define MEMSHARE_SCHED_SOL_1
+//`define MEMSHARE_SCHED_SOL_2
+`define MEMSHARE_SCHED_SOL_3
+`define MEMSHARE_REGFILE_SOL4
 
+//-----------------------------------------------------------------------------------------------------
+// Parity-Check Matrix dependent macros
+//-----------------------------------------------------------------------------------------------------
 `ifdef QC_RC_7650
 	`define VN_DEGREE 3   // degree of one variable node
 	`define CN_DEGREE 10  // degree of one check node 

@@ -17,10 +17,23 @@
 //  Date            Revision    Description                 Editor
 //  13.April.2024   v0.01       First created               Bo-Yu Tseng
 // ----------------------------------------------------------------------------------------
-`include "memShare_config.vh"
+`include "define.vh"
 
 package memShare_config_pkg;
 
+//=====================================================================================================
+// Common decoder configuratoin
+//=====================================================================================================
+`ifdef DECODER_3bit
+	localparam QUAN_SIZE = 3;
+`elsif DECODER_4bit
+	localparam QUAN_SIZE = 4;
+`else
+	localparam QUAN_SIZE = 4;
+`endif
+//=====================================================================================================
+// SCU.memShare() configuration
+//=====================================================================================================
 localparam MAX_ALLOC_SEQ_NUM = 2; // maximum number of allocation seuqences for a set of request patterns
 
 // Arrival requestor profiling
@@ -86,8 +99,8 @@ localparam MAX_MEMSHARE_INSTANCES = 2; // maximum numbe of allocation sequences
 // Configuration of L1PA control register file
 //-----------------------------------------------------------------------------------------------------
 `ifdef MEMSHARE_REGFILE_SOL4
-    localparam L1PA_SHIFT_BITWIDTH = $clog2(`SHARE_GROUP_SIZE); // 5 requestors in a share group
-    localparam L1PA_SHIFT_DELTA_WIDTH = $clog2(`SHARE_GROUP_SIZE);
+    localparam L1PA_SHIFT_BITWIDTH = $clog2(SHARE_GROUP_SIZE); // 5 requestors in a share group
+    localparam L1PA_SHIFT_DELTA_WIDTH = $clog2(SHARE_GROUP_SIZE);
     localparam L1PA_REGFILE_PAGE_NUM = 32; // Number of pages in memShare_regFile
     localparam L1PA_REGFILE_PAGE_WIDTH = 7;
     localparam L1PA_REGFILE_ADDR_WIDTH = 5;
@@ -150,18 +163,48 @@ localparam MAX_MEMSHARE_INSTANCES = 2; // maximum numbe of allocation sequences
 //-----------------------------------------------------------------------------------------------------
 // Column-bank IB-LUT sharing scheme
 //-----------------------------------------------------------------------------------------------------
-localparam GP1_ROW_ADDR_OFFSET_WIDTH = 1;
-localparam GP2_ROW_ADDR_OFFSET_WIDTH = 2;
-localparam BANK_INTERLEAVE = 1;
-localparam PRELOAD_SET_NUM = 1; //! The number of preload sets stored in the underlying memory cell
-localparam GP1_RD_ADDR_WIDTH = GP1_ROW_ADDR_OFFSET_WIDTH+`QUAN_SIZE;
-localparam GP1_WR_ADDR_WIDTH = GP1_ROW_ADDR_OFFSET_WIDTH+`QUAN_SIZE;
-localparam GP1_WR_WIDTH = `QUAN_SIZE*`BANK_INTERLEAVE;
-localparam GP1_ENTRY_NUM = 16;
-localparam GP2_RD_ADDR_WIDTH = GP2_ROW_ADDR_OFFSET_WIDTH+`QUAN_SIZE;
-localparam GP2_WR_ADDR_WIDTH = GP2_ROW_ADDR_OFFSET_WIDTH+`QUAN_SIZE;
-localparam GP2_WR_WIDTH = `QUAN_SIZE*BANK_INTERLEAVE;
-localparam GP2_ENTRY_NUM = 32;
+`ifdef DECODER_3bit
+    loclaparam GP1_COL_BANK_NUM = 8;
+    localparam GP2_COL_BANK_NUM = 8;
+    localparam GP1_COL_SEL_WIDTH = 3;
+    localparam GP2_COL_SEL_WIDTH = 3;
+    localparam GP1_RAM_ADDR_WIDTH = 6; // ROW_ADDR+COL_BANK_SEL=QUAN_SIZE+3
+    localparam GP2_RAM_ADDR_WIDTH = 6; // ROW_ADDR+COL_BANK_SEL=QUAN_SIZE+3
+    localparam GP1_VN_LOAD_CYCLE = 64; // (2**QUAN_SIZE)*GP1_COL_BANK_NUM
+    localparam GP2_VN_LOAD_CYCLE = 64; // (2**QUAN_SIZE)*GP2_COL_BANK_NUM
+`elsif DECODER_4bit
+    loclaparam GP1_COL_BANK_NUM = 4;
+    localparam GP2_COL_BANK_NUM = 16;
+    localparam GP1_COL_SEL_WIDTH = 2;
+    localparam GP2_COL_SEL_WIDTH = 3;
+    localparam GP1_RAM_ADDR_WIDTH = 6; // ROW_ADDR+COL_BANK_SEL=QUAN_SIZE+2
+    localparam GP2_RAM_ADDR_WIDTH = 8; // ROW_ADDR+COL_BANK_SEL=QUAN_SIZE+4
+    localparam GP1_VN_LOAD_CYCLE = 64;// (2**QUAN_SIZE)*GP1_COL_BANK_NUM
+    localparam GP2_VN_LOAD_CYCLE = 256;// (2**QUAN_SIZE)*GP2_COL_BANK_NUM
+`else // 3bit parameters as the default settings
+    loclaparam GP1_COL_BANK_NUM = 8;
+    localparam GP2_COL_BANK_NUM = 8;
+    localparam GP1_COL_SEL_WIDTH = 3;
+    localparam GP2_COL_SEL_WIDTH = 3;
+    localparam GP1_RAM_ADDR_WIDTH = 6; // ROW_ADDR+COL_BANK_SEL=QUAN_SIZE+3
+    localparam GP2_RAM_ADDR_WIDTH = 6; // ROW_ADDR+COL_BANK_SEL=QUAN_SIZE+3
+    localparam GP1_VN_LOAD_CYCLE = 64; // (2**QUAN_SIZE)*GP1_COL_BANK_NUM
+    localparam GP2_VN_LOAD_CYCLE = 64; // (2**QUAN_SIZE)*GP2_COL_BANK_NUM
+`endif
+
+// Legay (9 Jun, 2024)
+//localparam GP1_ROW_ADDR_OFFSET_WIDTH = 1;
+//localparam GP2_ROW_ADDR_OFFSET_WIDTH = 2;
+//localparam BANK_INTERLEAVE = 1;
+//localparam PRELOAD_SET_NUM = 1; //! The number of preload sets stored in the underlying memory cell
+//localparam GP1_RD_ADDR_WIDTH = GP1_ROW_ADDR_OFFSET_WIDTH+`QUAN_SIZE;
+//localparam GP1_WR_ADDR_WIDTH = GP1_ROW_ADDR_OFFSET_WIDTH+`QUAN_SIZE;
+//localparam GP1_WR_WIDTH = `QUAN_SIZE*`BANK_INTERLEAVE;
+//localparam GP1_ENTRY_NUM = 16;
+//localparam GP2_RD_ADDR_WIDTH = GP2_ROW_ADDR_OFFSET_WIDTH+`QUAN_SIZE;
+//localparam GP2_WR_ADDR_WIDTH = GP2_ROW_ADDR_OFFSET_WIDTH+`QUAN_SIZE;
+//localparam GP2_WR_WIDTH = `QUAN_SIZE*BANK_INTERLEAVE;
+//localparam GP2_ENTRY_NUM = 32;
 //-----------------------------------------------------------------------------------------------------
 // Shift offset generator for L1PA
 //-----------------------------------------------------------------------------------------------------
