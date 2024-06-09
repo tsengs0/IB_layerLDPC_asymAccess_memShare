@@ -25,29 +25,22 @@ module reconfig_sp_sram #(
     parameter ADDR_BITWIDTH = 6,
     parameter PAGE_SIZE = 4,
     parameter PAGE_NUM = 64,
-    parameter ASYNC_RD = 1,
-    parameter XILINX_FPGA_TECH = 1
+    parameter ASYNC_RD_EN = 1 // 0: synchronous read, 1: asynchronous read
 ) (
     output logic [PAGE_SIZE-1:0] rdata_o,
     
     input logic [PAGE_SIZE-1:0] wdata_i,
     input logic [ADDR_BITWIDTH-1:0] access_addr_i,
-    input logic wen_i, // active LOW
+    input logic wen_n_i, // active LOW
     input logic sys_clk,
     input rstn // active LOW
 );
 
-generate;
-// Synthesis inferring 
-if(XILINX_FPGA_TECH==1) begin
-    (* ram_style = "distributed" *) reg [PAGE_SIZE-1:0] mem [0:PAGE_NUM-1];
-end
-else begin
-    reg [PAGE_SIZE-1:0] mem [0:PAGE_NUM-1];
-end
+(* ram_style = "distributed" *) reg [PAGE_SIZE-1:0] mem [0:PAGE_NUM-1];
 
+generate;
 // Synchronous or Asynchronous read with the "sys_clk"
-if(ASYNC_RD==1) begin
+if(ASYNC_RD_EN==1) begin
     assign rdata_o[PAGE_SIZE-1:0] = mem[ access_addr_i[ADDR_BITWIDTH-1:0] ];
 end
 else begin
@@ -59,6 +52,6 @@ end
 endgenerate
 
 always @(posedge sys_clk) begin
-    if(!wen_i) mem[ access_addr_i[ADDR_BITWIDTH-1:0] ] <= wdata_i[PAGE_SIZE-1:0];
+    if(!wen_n_i) mem[ access_addr_i[ADDR_BITWIDTH-1:0] ] <= wdata_i[PAGE_SIZE-1:0];
 end
 endmodule
