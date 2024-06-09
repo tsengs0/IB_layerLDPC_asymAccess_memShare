@@ -12,9 +12,9 @@
 
 // # Resource utilisation:
 // Xilinx:
-//  6-input logic LUT: 
-//  6-input LUTRAM:
-//  FF: 
+//  6-input logic LUT: 1
+//  6-input LUTRAM: 56
+//  FF: 0
 // ----------------------------------------------------------------------------------------
 //  # History
 //  Date            Revision    Description                 Editor
@@ -32,7 +32,8 @@ module memShare_vn_ibLUT_rank
 
     input logic [RANK_COL_ADDR_WIDTH-1:0] memShare_colSel_vec_i, // Bit width based on the 
     input logic [(QUAN_SIZE*SHARE_GROUP_SIZE)-1:0] c2v_msg_vec_i,
-    input logic remap_en_n, // active LOW
+    input logic [(QUAN_SIZE*SHARE_GROUP_SIZE)-1:0] remap_dataIn_vec_i,
+    input logic nRemap_en_i, // active LOW
     input logic read_clk,
     input logic write_clk,
     input logic rstn // active LOW
@@ -43,6 +44,7 @@ module memShare_vn_ibLUT_rank
 // ----------------------------------------------------------------------------------
 logic [QUAN_SIZE-1:0] v2c_msg_out [0:SHARE_GROUP_SIZE-1];
 logic [GP2_RAM_ADDR_WIDTH-1:0] ib_ram_addr [0:SHARE_GROUP_SIZE-1]; // To choose the max(GP1_COL_SEL_WIDTH, GP2_COL_SEL_WIDTH)
+logic [QUAN_SIZE-1:0] remap_dataIn [0:SHARE_GROUP_SIZE-1];
 // ----------------------------------------------------------------------------------
 // Share group wrapper
 // ----------------------------------------------------------------------------------
@@ -57,9 +59,9 @@ for(group_id=0; group_id<SHARE_GROUP_SIZE; group_id=group_id+1) begin: share_gro
             .SHARE_GROUP(2)
         ) vn_ib_ram (
             .msgOut_o(v2c_msg_out[group_id][QUAN_SIZE-1:0]),
-            .remap_dataIn_i(),
+            .remap_dataIn_i(remap_dataIn[group_id][QUAN_SIZE-1:0]),
             .map_remap_addr_i(ib_ram_addr[group_id][GP2_RAM_ADDR_WIDTH-1:0]),
-            .remap_en_n(remap_en_n),
+            .remap_en_n(nRemap_en_i),
             .sys_clk(read_clk),
             .rstn(rstn)
         );
@@ -72,9 +74,9 @@ for(group_id=0; group_id<SHARE_GROUP_SIZE; group_id=group_id+1) begin: share_gro
             .SHARE_GROUP(1)
         ) vn_ib_ram (
             .msgOut_o(v2c_msg_out[group_id][QUAN_SIZE-1:0]),
-            .remap_dataIn_i(),
+            .remap_dataIn_i(remap_dataIn[group_id][QUAN_SIZE-1:0]),
             .map_remap_addr_i(ib_ram_addr[group_id][GP1_RAM_ADDR_WIDTH-1:0]),
-            .remap_en_n(remap_en_n),
+            .remap_en_n(nRemap_en_i),
             .sys_clk(read_clk),
             .rstn(rstn)
         );
@@ -85,6 +87,7 @@ for(group_id=0; group_id<SHARE_GROUP_SIZE; group_id=group_id+1) begin: share_gro
         c2v_msg_vec_i[(group_id+1)*QUAN_SIZE-1:group_id*QUAN_SIZE]
     };
     assign v2c_msg_vec_o[(group_id+1)*QUAN_SIZE-1:group_id*QUAN_SIZE] = v2c_msg_out[group_id][QUAN_SIZE-1:0];
+    assign remap_dataIn[group_id][QUAN_SIZE-1:0] = remap_dataIn_vec_i[(group_id+1)*QUAN_SIZE-1:group_id*QUAN_SIZE];
 end
 endgenerate
 endmodule

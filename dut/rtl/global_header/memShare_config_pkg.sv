@@ -176,7 +176,7 @@ localparam MAX_MEMSHARE_INSTANCES = 2; // maximum numbe of allocation sequences
     loclaparam GP1_COL_BANK_NUM = 4;
     localparam GP2_COL_BANK_NUM = 16;
     localparam GP1_COL_SEL_WIDTH = 2;
-    localparam GP2_COL_SEL_WIDTH = 3;
+    localparam GP2_COL_SEL_WIDTH = 4;
     localparam GP1_RAM_ADDR_WIDTH = 6; // ROW_ADDR+COL_BANK_SEL=QUAN_SIZE+2
     localparam GP2_RAM_ADDR_WIDTH = 8; // ROW_ADDR+COL_BANK_SEL=QUAN_SIZE+4
     localparam GP1_VN_LOAD_CYCLE = 64;// (2**QUAN_SIZE)*GP1_COL_BANK_NUM
