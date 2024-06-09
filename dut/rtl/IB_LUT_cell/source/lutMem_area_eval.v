@@ -79,7 +79,21 @@ input wire [4-1:0] read_addr_u7,
 input wire [0:0] read_strobe_u7,
 input wire we_u7,
 input wire write_clk_u7,
-input wire read_clk_u7
+input wire read_clk_u7,
+
+// RAM_32w2b_asyncRd
+output wire [1:0] read_page_u8,
+input wire [1:0] write_data_u8,
+input wire [4:0] access_addr_u8,
+input wire we_u8,
+input wire sys_clk_u8,
+// RAM_32w4b_asyncRd
+output wire [3:0] read_page_u9,
+input wire [3:0] write_data_u9,
+input wire [4:0] write_addr_u9,
+input wire [4:0] read_addr_u9,
+input wire we_u9,
+input wire sys_clk_u9
 );
 //---------------------------------------------
 // Instantiation of single-port RAM
@@ -137,7 +151,6 @@ lutMem_2bankX1port #(
     .we_i          (we_u3),
     .sys_clk       (sys_clk_u3)
 );
-
 //---------------------------------------------
 // Instantiation of pseudo/simple dual-port RAM
 //---------------------------------------------
@@ -201,5 +214,35 @@ lutMem_2bank_sdp #(
     .we_i          (we_u7),
     .write_clk       (write_clk_u7),
     .read_clk       (read_clk_u7)
+);
+//---------------------------------------------
+// Instantiation of single-port RAM of 32wordx2bit
+//---------------------------------------------
+lutMem_1bankX1port #(
+    .QUAN_SIZE(2),
+    .PAGE_NUM(32),
+    .ADDR_BITWIDTH(5)
+) lutram_asyncRD_32w2b (
+    .read_page_o   (read_page_u8),
+    .write_data_i  (write_data_u8),
+    .access_addr_i (access_addr_u8),
+    .we_i          (we_u8),
+    .sys_clk       (sys_clk_u8)
+);
+//---------------------------------------------
+// Instantiation of single-port RAM of 32wordx4bit
+//---------------------------------------------
+lutMem_optimal_32w4b # (
+    .ASYNC_RD(1),
+    .QUAN_SIZE(4),
+    .PAGE_NUM(32),
+    .ADDR_BITWIDTH(5)
+) lutMem_optimal_32w4b (
+    .read_page_o(read_page_u9),
+    .write_data_i(write_data_u9),
+    .write_addr_i(write_addr_u9),
+    .read_addr_i(read_addr_u9),
+    .we_i(we_u9),
+    .sys_clk(sys_clk_u9)
 );
 endmodule

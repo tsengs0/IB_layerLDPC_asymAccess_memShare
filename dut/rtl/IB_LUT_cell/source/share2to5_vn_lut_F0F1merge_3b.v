@@ -1,9 +1,9 @@
 `timescale 1ns/1ps
 /**
-* Latest date: 21st May., 2023
+* Latest date: 25th May, 2024
 * Developer: Bo-Yu Tseng
 * Email: tsengs0@gamil.com
-* Module name: share2to5_vn_lut_merge2
+* Module name: memShare_vn_ibLUT_f0f1_wrapper_3b
 * 
 * # I/F
 * 1) Output:
@@ -66,7 +66,7 @@
         WPWS: ns
         TPWS: ns
 **/
-module share2to5_vn_lut_F0F1merge_3b #(
+module memShare_vn_ibLUT_f0f1_wrapper_3b #(
     // Basic configuration of memory cells
     parameter QUAN_SIZE = 3,
     parameter BANK_INTERLEAVE = 1,
@@ -82,7 +82,7 @@ module share2to5_vn_lut_F0F1merge_3b #(
 
     // Configuration of shared column
     parameter GROUP_NUM = 5, //! Shared group size
-    parameter [GROUP_NUM-1:0] SHARE_COL_CONFIG = 5'b10100, //! '1': shared column
+    parameter [GROUP_NUM-1:0] SHARE_COL_CONFIG = 5'b10101, //! '1': shared column
     parameter RD_ADDR4_WIDTH = GP2_RD_ADDR_WIDTH,
     parameter RD_ADDR3_WIDTH = GP1_RD_ADDR_WIDTH,
     parameter RD_ADDR2_WIDTH = GP2_RD_ADDR_WIDTH,
