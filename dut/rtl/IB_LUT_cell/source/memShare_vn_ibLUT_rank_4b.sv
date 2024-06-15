@@ -138,9 +138,7 @@ for(group_id=0; group_id<SHARE_GROUP_SIZE; group_id=group_id+1) begin: share_gro
             .ADDR_WIDTH(GP2_RAM_ADDR_WIDTH),
             .VN_LOAD_CYCLE(GP2_VN_LOAD_CYCLE),
             .MSG_WIDTH(QUAN_SIZE),
-            .SHARE_GROUP(2),
-            .BANK_INTERLEAVE_EN (BANK_INTERLEAVE_EN),
-            .BANK_INTERLEAVE_NUM (4) // 4 interleaving banks
+            .SHARE_GROUP(2)
         ) vn_ib_ram (
             .msgOut_o(v2c_msg_out[group_id][QUAN_SIZE-1:0]),
             .remap_dataIn_i(remap_dataIn[group_id][QUAN_SIZE-1:0]),
@@ -155,9 +153,7 @@ for(group_id=0; group_id<SHARE_GROUP_SIZE; group_id=group_id+1) begin: share_gro
             .ADDR_WIDTH(GP1_RAM_ADDR_WIDTH),
             .VN_LOAD_CYCLE(GP1_VN_LOAD_CYCLE),
             .MSG_WIDTH(QUAN_SIZE),
-            .SHARE_GROUP(1),
-            .BANK_INTERLEAVE_EN (BANK_INTERLEAVE_EN),
-            .BANK_INTERLEAVE_NUM (2) // 2 interleaving banks
+            .SHARE_GROUP(1)
         ) vn_ib_ram (
             .msgOut_o(v2c_msg_out[group_id][QUAN_SIZE-1:0]),
             .remap_dataIn_i(remap_dataIn[group_id][QUAN_SIZE-1:0]),
