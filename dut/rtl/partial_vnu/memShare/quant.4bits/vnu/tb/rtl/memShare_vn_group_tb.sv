@@ -47,6 +47,7 @@ endinterface
 
 module memShare_vn_group_tb;
 import memShare_config_pkg::*;
+import ibRAM_config_pkg::*;
 
 //----------------------------------------------------------------
 // Local variables, nets, parameters, I/Fs, tasks, functions, etc.
@@ -62,11 +63,15 @@ localparam V2C_SIGN_BUF_DEPTH = 2;
 localparam RANK_COL_ADDR_WIDTH = GP2_COL_SEL_WIDTH*SHARE_GROUP_SIZE;
 localparam IBRAM_REMAP_VEC_WIDTH = QUAN_SIZE*SHARE_GROUP_SIZE;
 
+generic_mem_preloader#(
+    .PAGE_NUM(memShare_config_pkg::GP1_VN_LOAD_CYCLE),
+    .PAGE_SIZE(V2C_WIDTH)
+) gp1_ibram_loader;
 
 generic_mem_preloader#(
-    .PAGE_NUM(L1PA_REGFILE_PAGE_NUM),
-    .PAGE_SIZE(L1PA_REGFILE_PAGE_WIDTH)
-) ib_ram_loader;
+    .PAGE_NUM(memShare_config_pkg::GP2_VN_LOAD_CYCLE),
+    .PAGE_SIZE(V2C_WIDTH)
+) gp2_ibram_loader;
 scu_memShare_tb_class tb_lib;
 scu_memShare_tb_seq_class tb_seq;
 int SIM_TIME=200;
@@ -112,49 +117,20 @@ memShare_vn_group # (
 //----------------------------------------------------------------
 // Dummy models
 //----------------------------------------------------------------
-dmy_msgPass_buffer  dmy_msgPass_buffer (
-//    .write_port_conflict_o(write_port_conflict_o),
-    .rdata_portA_o(tb_msgPass_buff_if.rdata_portA_o),
-//    .rdata_portB_o(rdata_portB_o),
-    .raddr_portA_i(tb_msgPass_buff_if.raddr_portA_i),
-//    .raddr_portB_i(raddr_portB_i),
-    .wdata_portA_i(tb_msgPass_buff_if.wdata_portA_i),
-//    .wdata_portB_i(wdata_portB_i),
-    .waddr_portA_i(tb_msgPass_buff_if.waddr_portA_i),
- //   .waddr_portB_i(tb_msgPass_buff_if.waddr_portB_i),
-    .cen_i(dmy_msgPass_addr_gen.bufferStart_once_pipe0),
-    .read_clk_i(tb_sys_ctrl_if.sys_clk),
-    .write_clk_i(tb_sys_ctrl_if.sys_clk),
-    .wen_portA_i(tb_msgPass_buff_if.wen_portA_i),
-    .wen_portB_i(MSGPASS_BUFF_WR_DISABLE),
-    .rstn(tb_sys_ctrl_if.rstn)
-);
 
-dmy_msgPass_addr_gen  dmy_msgPass_addr_gen (
-    .addr_o(tb_msgPass_buff_if.raddr_portA_i),
-    .is_drc_i(tb_scu_memShare_if.is_drc_o),
-  //  .incrementSrc_sel_i(incrementSrc_sel_i),
-    .buffer_read_begin_i (buffer_read_begin),
-    .buffer_read_end_i (buffer_read_end),
-    .sys_clk(tb_sys_ctrl_if.sys_clk),
-    .rstn(tb_sys_ctrl_if.rstn)
-);
 //----------------------------------------------------------------
 // Test Patterns
 //----------------------------------------------------------------
 // Common initialisation
 task common_init;
-    ib_ram_loader = new(); // importing the configuration file to the testbench only
-
+    // IB-RAM loaders which contains the GP1 and GP2 configurations
+    gp1_ibram_loader = new();
+    gp2_ibram_loader = new();
 //    tb_seq = new(tb_sys_ctrl_if, tb_msgPass_buff_if, tb_scu_memShare_if);
 
-`ifdef VERILATOR_SIM
-  ib_ram_loader.bin_load("tb/config/l1pa_spr_5_gp2Num3_gp2Alloc10101.bin");
-`endif // VERILATOR_SIM
 
-`ifdef VIVADO_SIM
+    gp1_ibram_loader.hex_load("")
   ib_ram_loader.bin_load("l1pa_spr_5_gp2Num3_gp2Alloc10101.bin");
-`endif // VIVADO_SIM
 
   ib_ram_loader.bin_view;
 

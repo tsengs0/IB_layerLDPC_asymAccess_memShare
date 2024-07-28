@@ -164,8 +164,8 @@ localparam MAX_MEMSHARE_INSTANCES = 2; // maximum numbe of allocation sequences
 // Column-bank IB-LUT sharing scheme
 //-----------------------------------------------------------------------------------------------------
 `ifdef DECODER_3bit
-    loclaparam GP1_COL_BANK_NUM = 8;
-    localparam GP2_COL_BANK_NUM = 8;
+    loclaparam GP1_COL_BANK_NUM = 8; // A total of column banks for the underlying IB-RAM merging 2 decomposition-level IB-LUTs
+    localparam GP2_COL_BANK_NUM = 8; // A total of column banks for the underlying IB-RAM merging 2 decomposition-level IB-LUTs
     localparam GP1_COL_SEL_WIDTH = 3;
     localparam GP2_COL_SEL_WIDTH = 3;
     localparam GP1_RAM_ADDR_WIDTH = 6; // ROW_ADDR+COL_BANK_SEL=QUAN_SIZE+3
@@ -173,8 +173,8 @@ localparam MAX_MEMSHARE_INSTANCES = 2; // maximum numbe of allocation sequences
     localparam GP1_VN_LOAD_CYCLE = 64; // (2**QUAN_SIZE)*GP1_COL_BANK_NUM
     localparam GP2_VN_LOAD_CYCLE = 64; // (2**QUAN_SIZE)*GP2_COL_BANK_NUM
 `elsif DECODER_4bit
-    loclaparam GP1_COL_BANK_NUM = 4;
-    localparam GP2_COL_BANK_NUM = 16;
+    loclaparam GP1_COL_BANK_NUM = 4; // A total of column banks for the underlying IB-RAM merging 2 decomposition-level IB-LUTs
+    localparam GP2_COL_BANK_NUM = 16; // A total of column banks for the underlying IB-RAM merging 2 decomposition-level IB-LUTs
     localparam GP1_COL_SEL_WIDTH = 2;
     localparam GP2_COL_SEL_WIDTH = 4;
     localparam GP1_RAM_ADDR_WIDTH = 6; // ROW_ADDR+COL_BANK_SEL=QUAN_SIZE+2
@@ -182,8 +182,8 @@ localparam MAX_MEMSHARE_INSTANCES = 2; // maximum numbe of allocation sequences
     localparam GP1_VN_LOAD_CYCLE = 64;// (2**QUAN_SIZE)*GP1_COL_BANK_NUM
     localparam GP2_VN_LOAD_CYCLE = 256;// (2**QUAN_SIZE)*GP2_COL_BANK_NUM
 `else // 3bit parameters as the default settings
-    loclaparam GP1_COL_BANK_NUM = 8;
-    localparam GP2_COL_BANK_NUM = 8;
+    loclaparam GP1_COL_BANK_NUM = 8; // A total of column banks for the underlying IB-RAM merging 2 decomposition-level IB-LUTs
+    localparam GP2_COL_BANK_NUM = 8; // A total of column banks for the underlying IB-RAM merging 2 decomposition-level IB-LUTs
     localparam GP1_COL_SEL_WIDTH = 3;
     localparam GP2_COL_SEL_WIDTH = 3;
     localparam GP1_RAM_ADDR_WIDTH = 6; // ROW_ADDR+COL_BANK_SEL=QUAN_SIZE+3
